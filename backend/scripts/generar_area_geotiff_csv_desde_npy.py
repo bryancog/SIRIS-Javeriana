@@ -5,6 +5,8 @@ import json
 import math
 import re
 import zipfile
+import shutil
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import numpy as np
 import rasterio
@@ -186,7 +188,7 @@ def zip_outputs(zip_path, geotiff_dir, csv_path, readme_path):
     if zip_path.exists():
         zip_path.unlink()
 
-    with zipfile.ZipFile(zip_path, "w", compression=zipfile.ZIP_DEFLATED) as z:
+    with zipfile.ZipFile(zip_path, "w", compression=zipfile.ZIP_STORED) as z:
         for tif in sorted(Path(geotiff_dir).glob("*.tif")):
             z.write(tif, Path("geotiff") / tif.name)
 
@@ -199,9 +201,11 @@ def zip_outputs(zip_path, geotiff_dir, csv_path, readme_path):
 
 def write_mask_rows(writer, mask, fecha, tile, area, transform_sr):
     """
-    Una fila por píxel original 512x512 imputado.
-    La fila indica el bloque SR x4 afectado.
+    Escribe únicamente los píxeles imputados que intersectan el área seleccionada.
+    La máscara está en resolución original 512x512.
+    El área está en resolución SR x4.
     """
+
     ar0, ac0, ar1, ac1 = area
     tile_r_raw, tile_c_raw = parse_tile(tile)
 
@@ -217,21 +221,34 @@ def write_mask_rows(writer, mask, fecha, tile, area, transform_sr):
     else:
         raise ValueError(f"Máscara con dimensiones inesperadas: {mask.shape}")
 
-    rows, cols = np.where(mask_pixel)
+    # Convertir el área SR x4 al sistema raw 512x512
+    raw_r0_global = max(tile_r_raw, ar0 // SCALE)
+    raw_c0_global = max(tile_c_raw, ac0 // SCALE)
+    raw_r1_global = min(tile_r_raw + TILE_SIZE_RAW, math.ceil(ar1 / SCALE))
+    raw_c1_global = min(tile_c_raw + TILE_SIZE_RAW, math.ceil(ac1 / SCALE))
+
+    if raw_r0_global >= raw_r1_global or raw_c0_global >= raw_c1_global:
+        return 0
+
+    r0_rel = raw_r0_global - tile_r_raw
+    r1_rel = raw_r1_global - tile_r_raw
+    c0_rel = raw_c0_global - tile_c_raw
+    c1_rel = raw_c1_global - tile_c_raw
+
+    mask_crop = mask_pixel[r0_rel:r1_rel, c0_rel:c1_rel]
+
+    rows, cols = np.where(mask_crop)
 
     written = 0
 
-    for row_raw_rel, col_raw_rel in zip(rows, cols):
-        row_raw_global = tile_r_raw + int(row_raw_rel)
-        col_raw_global = tile_c_raw + int(col_raw_rel)
+    for row_rel_crop, col_rel_crop in zip(rows, cols):
+        row_raw_global = raw_r0_global + int(row_rel_crop)
+        col_raw_global = raw_c0_global + int(col_rel_crop)
 
         row_sr0 = row_raw_global * SCALE
         col_sr0 = col_raw_global * SCALE
         row_sr1 = row_sr0 + SCALE
         col_sr1 = col_sr0 + SCALE
-
-        if row_sr1 <= ar0 or row_sr0 >= ar1 or col_sr1 <= ac0 or col_sr0 >= ac1:
-            continue
 
         clip_row_sr0 = max(row_sr0, ar0)
         clip_col_sr0 = max(col_sr0, ac0)
@@ -267,6 +284,126 @@ def write_mask_rows(writer, mask, fecha, tile, area, transform_sr):
 
     return written
 
+def process_one_date(
+    fecha,
+    date_idx,
+    total_dates,
+    npy_roots,
+    mask_root,
+    tiles_needed,
+    row0,
+    col0,
+    height,
+    width,
+    area,
+    transform_sr,
+    crop_transform,
+    crs,
+    geotiff_dir,
+    tmp_csv_dir,
+    csv_fields
+):
+    print(f"Procesando fecha {date_idx + 1}/{total_dates}: {fecha}", flush=True)
+
+    crop = None
+    missing_masks = []
+    total_csv_rows = 0
+
+    tmp_csv_path = tmp_csv_dir / f"pixeles_imputados_{fecha}.csv"
+
+    with open(tmp_csv_path, "w", newline="", encoding="utf-8") as fcsv:
+        writer = csv.DictWriter(fcsv, fieldnames=csv_fields)
+        writer.writeheader()
+
+        for tile, tb in tiles_needed:
+            npy_path = find_npy_file(npy_roots, fecha, tile)
+
+            if npy_path is None:
+                raise FileNotFoundError(f"No se encontró NPY para fecha={fecha}, tile={tile}")
+
+            x = np.load(npy_path, mmap_mode="r")
+            x = normalize_to_chw(x)
+
+            if crop is None:
+                crop = np.zeros((x.shape[0], height, width), dtype=x.dtype)
+
+            tr0, tc0, tr1, tc1 = tb
+
+            # Intersección entre el área seleccionada y el tile actual
+            ir0 = max(row0, tr0)
+            ic0 = max(col0, tc0)
+            ir1 = min(row0 + height, tr1)
+            ic1 = min(col0 + width, tc1)
+
+            if ir0 >= ir1 or ic0 >= ic1:
+                continue
+
+            # Ventana fuente dentro del tile SR x4
+            src_r0 = ir0 - tr0
+            src_r1 = ir1 - tr0
+            src_c0 = ic0 - tc0
+            src_c1 = ic1 - tc0
+
+            # Ventana destino dentro del recorte final
+            dst_r0 = ir0 - row0
+            dst_r1 = ir1 - row0
+            dst_c0 = ic0 - col0
+            dst_c1 = ic1 - col0
+
+            crop[:, dst_r0:dst_r1, dst_c0:dst_c1] = x[:, src_r0:src_r1, src_c0:src_c1]
+
+            mask_path = find_mask_file(mask_root, fecha, tile)
+
+            if mask_path:
+                mask = np.load(mask_path, mmap_mode="r")
+                total_csv_rows += write_mask_rows(
+                    writer=writer,
+                    mask=mask,
+                    fecha=fecha,
+                    tile=tile,
+                    area=area,
+                    transform_sr=transform_sr
+                )
+            else:
+                missing_masks.append(f"{fecha}/{tile}")
+
+    if crop is None:
+        raise RuntimeError(f"No se pudo construir el recorte para la fecha {fecha}")
+
+    tif_path = geotiff_dir / f"area_{fecha}.tif"
+
+    with rasterio.open(
+        tif_path,
+        "w",
+        driver="GTiff",
+        height=crop.shape[1],
+        width=crop.shape[2],
+        count=crop.shape[0],
+        dtype=str(crop.dtype),
+        crs=crs,
+        transform=crop_transform,
+        compress="lzw",
+        tiled=True,
+        blockxsize=256,
+        blockysize=256,
+        nodata=0,
+        BIGTIFF="IF_SAFER",
+        NUM_THREADS="2"
+    ) as dst:
+        for band_idx in range(crop.shape[0]):
+            dst.write(crop[band_idx], band_idx + 1)
+            if band_idx < len(BAND_NAMES):
+                dst.set_band_description(band_idx + 1, BAND_NAMES[band_idx])
+
+    print(f"GeoTIFF listo: {tif_path}", flush=True)
+
+    return {
+        "fecha": fecha,
+        "tif_path": str(tif_path),
+        "csv_path": str(tmp_csv_path),
+        "total_csv_rows": total_csv_rows,
+        "missing_masks": missing_masks
+    }
 
 def main():
     ap = argparse.ArgumentParser()
@@ -279,6 +416,7 @@ def main():
     ap.add_argument("--out-name", required=True)
     ap.add_argument("--date-from", required=False)
     ap.add_argument("--date-to", required=False)
+    ap.add_argument("--workers", type=int, default=2)
 
     args = ap.parse_args()
 
@@ -363,71 +501,72 @@ def main():
     total_csv_rows = 0
     missing_masks = []
 
+    workers = max(1, int(args.workers))
+
+    tmp_csv_dir = out_root / "_csv_tmp"
+
+    if tmp_csv_dir.exists():
+        shutil.rmtree(tmp_csv_dir)
+
+    tmp_csv_dir.mkdir(parents=True, exist_ok=True)
+
+    print(f"Workers GeoTIFF: {workers}", flush=True)
+
+    results = []
+
+    with ThreadPoolExecutor(max_workers=workers) as executor:
+        futures = []
+
+        for date_idx, fecha in enumerate(valid_dates):
+            futures.append(
+                executor.submit(
+                    process_one_date,
+                    fecha,
+                    date_idx,
+                    len(valid_dates),
+                    npy_roots,
+                    args.mask_root,
+                    tiles_needed,
+                    row0,
+                    col0,
+                    height,
+                    width,
+                    area,
+                    transform_sr,
+                    crop_transform,
+                    crs,
+                    geotiff_dir,
+                    tmp_csv_dir,
+                    csv_fields
+                )
+            )
+
+        for future in as_completed(futures):
+            result = future.result()
+            results.append(result)
+
+            total_csv_rows += int(result["total_csv_rows"])
+            missing_masks.extend(result["missing_masks"])
+
+            print(
+                f"Fecha terminada: {result['fecha']} | "
+                f"filas CSV: {result['total_csv_rows']}",
+                flush=True
+            )
+
+    # Unir CSV parciales en un solo CSV final, ordenado por fecha
     with open(csv_path, "w", newline="", encoding="utf-8") as fcsv:
         writer = csv.DictWriter(fcsv, fieldnames=csv_fields)
         writer.writeheader()
 
-        for date_idx, fecha in enumerate(valid_dates):
-            print(f"Procesando fecha {date_idx + 1}/{len(valid_dates)}: {fecha}", flush=True)
+        for result in sorted(results, key=lambda item: item["fecha"]):
+            with open(result["csv_path"], "r", newline="", encoding="utf-8") as part:
+                reader = csv.DictReader(part)
+                for row in reader:
+                    writer.writerow(row)
 
-            mosaic = None
-
-            for tile, tb in tiles_needed:
-                npy_path = find_npy_file(npy_roots, fecha, tile)
-
-                x = np.load(npy_path, mmap_mode="r")
-                x = normalize_to_chw(x)
-
-                if mosaic is None:
-                    mosaic = np.zeros((x.shape[0], mosaic_h, mosaic_w), dtype=x.dtype)
-
-                tr0, tc0, tr1, tc1 = tb
-                y0 = tr0 - mr0
-                x0 = tc0 - mc0
-
-                mosaic[:, y0:y0 + TILE_SIZE_SR, x0:x0 + TILE_SIZE_SR] = x[:, :TILE_SIZE_SR, :TILE_SIZE_SR]
-
-                mask_path = find_mask_file(args.mask_root, fecha, tile)
-
-                if mask_path:
-                    mask = np.load(mask_path, mmap_mode="r")
-                    total_csv_rows += write_mask_rows(
-                        writer=writer,
-                        mask=mask,
-                        fecha=fecha,
-                        tile=tile,
-                        area=area,
-                        transform_sr=transform_sr
-                    )
-                else:
-                    missing_masks.append(f"{fecha}/{tile}")
-
-            crop = mosaic[:, crop_top:crop_bottom, crop_left:crop_right]
-
-            tif_path = geotiff_dir / f"area_{fecha}.tif"
-
-            with rasterio.open(
-                tif_path,
-                "w",
-                driver="GTiff",
-                height=crop.shape[1],
-                width=crop.shape[2],
-                count=crop.shape[0],
-                dtype=str(crop.dtype),
-                crs=crs,
-                transform=crop_transform,
-                compress="deflate",
-                tiled=True,
-                blockxsize=256,
-                blockysize=256,
-                nodata=0
-            ) as dst:
-                for band_idx in range(crop.shape[0]):
-                    dst.write(crop[band_idx], band_idx + 1)
-                    if band_idx < len(BAND_NAMES):
-                        dst.set_band_description(band_idx + 1, BAND_NAMES[band_idx])
-
-            print("GeoTIFF:", tif_path, flush=True)
+    # Borrar CSV temporales
+    shutil.rmtree(tmp_csv_dir, ignore_errors=True)
 
     readme_lines = [
         "Exportación SIRIS: GeoTIFF + CSV de imputación temporal",

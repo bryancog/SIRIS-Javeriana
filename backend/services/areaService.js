@@ -129,6 +129,9 @@ function runGeoTiffAreaExport({
       "--out-name", outName
     ];
 
+    const workers = process.env.SIRIS_GEOTIFF_WORKERS || "2";
+    args.push("--workers", workers);
+
     if (dateFrom) {
       args.push("--date-from", String(dateFrom).replace(/-/g, ""));
     }
