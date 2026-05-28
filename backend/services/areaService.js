@@ -11,6 +11,8 @@ function runAreaExport({
   height,
   width,
   polygon,
+  dateFrom,
+  dateTo,
   outName,
   dataRoot,
   exportsRoot,
@@ -21,12 +23,20 @@ function runAreaExport({
 
     activeAreaOutName = outName;
 
-    const args = [
+   const args = [
       scriptPath,
       "--web-root", webExportsRoot,
       "--out-name", outName,
       "--fps", "8"
     ];
+
+    if (dateFrom) {
+      args.push("--date-from", String(dateFrom).replace(/-/g, ""));
+    }
+
+    if (dateTo) {
+      args.push("--date-to", String(dateTo).replace(/-/g, ""));
+    }
 
     if (polygon) {
       const exportPath = path.join(exportsRoot, outName);
@@ -86,6 +96,79 @@ function runAreaExport({
   });
 }
 
+function runGeoTiffAreaExport({
+  polygon,
+  dateFrom,
+  dateTo,
+  outName,
+  dataRoot,
+  exportsRoot,
+  npyRoots,
+  maskRoot
+}) {
+  return new Promise((resolve, reject) => {
+    const scriptPath = path.join(__dirname, "..", "scripts", "generar_area_geotiff_csv_desde_npy.py");
+
+    const exportPath = path.join(exportsRoot, outName);
+    fs.mkdirSync(exportPath, { recursive: true });
+
+    const polygonPath = path.join(exportPath, "polygon.json");
+
+    if (polygon) {
+      fs.writeFileSync(polygonPath, JSON.stringify(polygon), "utf8");
+    }
+
+    const args = [
+      scriptPath,
+      "--npy-roots",
+      ...npyRoots,
+      "--mask-root", maskRoot,
+      "--polygon-file", polygonPath,
+      "--grid-georef", path.join(dataRoot, "grid_georef.json"),
+      "--out-root", exportsRoot,
+      "--out-name", outName
+    ];
+
+    if (dateFrom) {
+      args.push("--date-from", String(dateFrom).replace(/-/g, ""));
+    }
+
+    if (dateTo) {
+      args.push("--date-to", String(dateTo).replace(/-/g, ""));
+    }
+
+    const child = spawn("python", args, {
+      cwd: dataRoot
+    });
+
+    let stderr = "";
+
+    child.stdout.on("data", (data) => {
+      console.log(data.toString());
+    });
+
+    child.stderr.on("data", (data) => {
+      stderr += data.toString();
+      console.error(data.toString());
+    });
+
+    child.on("close", (code, signal) => {
+      if (signal || code !== 0) {
+        reject(
+          new Error(
+            signal
+              ? "Exportacion GeoTIFF cancelada."
+              : stderr || `Proceso GeoTIFF terminó con código ${code}`
+          )
+        );
+        return;
+      }
+
+      resolve();
+    });
+  });
+}
+
 function cancelActiveAreaExport(exportsRoot) {
   if (activeAreaProcess) {
     activeAreaProcess.kill("SIGTERM");
@@ -101,5 +184,6 @@ function cancelActiveAreaExport(exportsRoot) {
 
 module.exports = {
   runAreaExport,
+  runGeoTiffAreaExport,
   cancelActiveAreaExport
 };

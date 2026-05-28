@@ -5,6 +5,7 @@ const crypto = require("crypto");
 
 const {
   runAreaExport,
+  runGeoTiffAreaExport,
   cancelActiveAreaExport
 } = require("./services/areaService");
 
@@ -17,6 +18,17 @@ const DATA_ROOT = path.join(__dirname, "data");
 const EXPORTS_ROOT = path.join(DATA_ROOT, "area_exports");
 const WEB_EXPORTS_ROOT = path.join(DATA_ROOT, "web_exports");
 
+const NPY_ROOTS = (
+  process.env.SIRIS_NPY_ROOTS ||
+  path.join(DATA_ROOT, "outputs_sr_x4_lanczos")
+)
+  .split(path.delimiter)
+  .map((item) => item.trim())
+  .filter(Boolean);
+
+const MASK_ROOT =
+  process.env.SIRIS_MASK_ROOT ||
+  path.join(DATA_ROOT, "outputs_imputation_masks");
 
 const TEST_USER = {
   username: "demo",
@@ -130,17 +142,32 @@ const server = http.createServer(async (req, res) => {
         height: body.height,
         width: body.width,
         polygon: body.polygon,
+        dateFrom: body.dateFrom,
+        dateTo: body.dateTo,
         outName,
         dataRoot: DATA_ROOT,
         exportsRoot: EXPORTS_ROOT,
         webExportsRoot: WEB_EXPORTS_ROOT
       });
 
+      await runGeoTiffAreaExport({
+        polygon: body.polygon,
+        dateFrom: body.dateFrom,
+        dateTo: body.dateTo,
+        outName,
+        dataRoot: DATA_ROOT,
+        exportsRoot: EXPORTS_ROOT,
+        npyRoots: NPY_ROOTS,
+        maskRoot: MASK_ROOT
+      });
+
       const exportDir = path.join(EXPORTS_ROOT, outName);
       const files = fs.readdirSync(exportDir);
 
       const videoFile = files.find((file) => file.toLowerCase().endsWith(".mp4"));
-      const zipFile = files.find((file) => file.toLowerCase().endsWith(".zip"));
+      const geotiffZipFile = files.find((file) =>
+        file.toLowerCase().endsWith("_geotiff_csv.zip")
+      );
 
       if (!videoFile) {
         sendJson(res, 500, {
@@ -152,9 +179,8 @@ const server = http.createServer(async (req, res) => {
       sendJson(res, 200, {
         message: "Exportacion generada.",
         outName,
-        videoUrl: `/exports/${outName}/${videoFile}`,
-        framesUrl: `/exports/${outName}/frames_jpg/`,
-        imagesZipUrl: zipFile ? `/exports/${outName}/${zipFile}` : null
+        videoUrl: videoFile ? `/exports/${outName}/${videoFile}` : null,
+        geotiffZipUrl: geotiffZipFile ? `/exports/${outName}/${geotiffZipFile}` : null
       });
     } catch (error) {
       sendJson(res, 500, { message: "Error generando exportacion.", error: error.message });

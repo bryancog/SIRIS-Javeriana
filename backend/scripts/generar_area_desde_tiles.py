@@ -50,6 +50,9 @@ ap.add_argument("--web-root", required=True)
 ap.add_argument("--out-name", required=True)
 ap.add_argument("--fps", type=int, default=8)
 
+ap.add_argument("--date-from", required=False)
+ap.add_argument("--date-to", required=False)
+
 ap.add_argument("--row0", type=int, required=False)
 ap.add_argument("--col0", type=int, required=False)
 ap.add_argument("--height", type=int, required=False)
@@ -151,7 +154,17 @@ if len(tiles) == 1 and args.copy_if_single_tile:
 tile_frame_maps = [(tile, td, tb, get_frame_map(td)) for tile, td, tb in tiles]
 
 common_dates = sorted(set.intersection(*(set(m.keys()) for _, _, _, m in tile_frame_maps)))
-print("Fechas comunes:", len(common_dates))
+
+if args.date_from:
+    common_dates = [d for d in common_dates if d >= args.date_from]
+
+if args.date_to:
+    common_dates = [d for d in common_dates if d <= args.date_to]
+
+print("Fechas comunes filtradas:", len(common_dates))
+
+if args.date_from or args.date_to:
+    print("Filtro fechas:", args.date_from, args.date_to)
 
 if not common_dates:
     raise SystemExit("No hay fechas comunes entre los tiles seleccionados.")
