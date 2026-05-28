@@ -2,7 +2,11 @@ const http = require("http");
 const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
-const { spawn } = require("child_process");
+
+const {
+  runAreaExport,
+  cancelActiveAreaExport
+} = require("./services/areaService");
 
 const PORT = process.env.PORT || 3000;
 const HOST = "127.0.0.1";
@@ -21,8 +25,6 @@ const TEST_USER = {
 };
 
 const sessions = new Map();
-let activeAreaProcess = null;
-let activeAreaOutName = null;
 
 const MIME_TYPES = {
   ".html": "text/html; charset=utf-8",
@@ -128,7 +130,10 @@ const server = http.createServer(async (req, res) => {
         height: body.height,
         width: body.width,
         polygon: body.polygon,
-        outName
+        outName,
+        dataRoot: DATA_ROOT,
+        exportsRoot: EXPORTS_ROOT,
+        webExportsRoot: WEB_EXPORTS_ROOT
       });
 
       const exportDir = path.join(EXPORTS_ROOT, outName);
@@ -183,16 +188,7 @@ const server = http.createServer(async (req, res) => {
       return;
     }
 
-    if (activeAreaProcess) {
-      activeAreaProcess.kill("SIGTERM");
-      activeAreaProcess = null;
-    }
-
-    if (activeAreaOutName) {
-      const exportPath = path.join(EXPORTS_ROOT, activeAreaOutName);
-      fs.rm(exportPath, { recursive: true, force: true }, () => {});
-      activeAreaOutName = null;
-    }
+    cancelActiveAreaExport(EXPORTS_ROOT);
 
     sendJson(res, 200, { message: "Exportacion cancelada." });
     return;
@@ -215,71 +211,6 @@ server.listen(PORT, HOST, () => {
   console.log(`SIRIS server running at http://${HOST}:${PORT}`);
   console.log(`Credenciales de prueba -> usuario: ${TEST_USER.username} | contrasena: ${TEST_USER.password}`);
 });
-
-function runAreaExport({ row0, col0, height, width, polygon, outName }) {
-  return new Promise((resolve, reject) => {
-    const scriptPath = path.join(__dirname, "scripts", "generar_area_desde_tiles.py");
-
-    activeAreaOutName = outName;
-
-    const args = [
-      scriptPath,
-      "--web-root", WEB_EXPORTS_ROOT,
-      "--out-name", outName,
-      "--fps", "8"
-    ];
-
-    if (polygon) {
-      const exportPath = path.join(EXPORTS_ROOT, outName);
-      fs.mkdirSync(exportPath, { recursive: true });
-
-      const polygonPath = path.join(exportPath, "polygon.json");
-      fs.writeFileSync(polygonPath, JSON.stringify(polygon), "utf8");
-
-      args.push("--polygon-file", polygonPath);
-      args.push("--grid-georef", path.join(DATA_ROOT, "grid_georef.json"));
-    } else {
-      args.push("--row0", String(Math.round(row0)));
-      args.push("--col0", String(Math.round(col0)));
-      args.push("--height", String(Math.round(height)));
-      args.push("--width", String(Math.round(width)));
-    }
-
-    const child = spawn("python", args, {
-      cwd: DATA_ROOT
-    });
-
-    activeAreaProcess = child;
-
-    let stderr = "";
-
-    child.stdout.on("data", (data) => {
-      console.log(data.toString());
-    });
-
-    child.stderr.on("data", (data) => {
-      stderr += data.toString();
-      console.error(data.toString());
-    });
-
-    child.on("close", (code, signal) => {
-      if (activeAreaProcess === child) {
-        activeAreaProcess = null;
-      }
-
-      if (activeAreaOutName === outName) {
-        activeAreaOutName = null;
-      }
-
-      if (signal || code !== 0) {
-        reject(new Error(signal ? "Exportacion cancelada." : (stderr || `Proceso Python terminó con código ${code}`)));
-        return;
-      }
-
-      resolve();
-    });
-  });
-}
 
 function serveExportFile(urlPath, res) {
   const relativePath = decodeURIComponent(urlPath.replace("/exports/", ""));

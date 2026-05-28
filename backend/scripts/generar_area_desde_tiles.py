@@ -192,25 +192,6 @@ def extract_tile_content(img):
 
     return content
 
-def remove_source_label(img):
-    """
-    Elimina la etiqueta interna heredada del tile original.
-    Ajusta coordenadas si la caja cambia de posición/tamaño.
-    """
-    # Caja aproximada del sello negro con fecha dentro del tile
-    x0, y0, x1, y1 = 0, TILE_SIZE_SR - 95, 170, TILE_SIZE_SR - 35
-
-    # Tomar una zona vecina a la derecha para cubrir la etiqueta
-    replacement = img.crop((x1, y0, min(x1 + (x1 - x0), img.width), y1))
-
-    if replacement.size[0] == 0 or replacement.size[1] == 0:
-        return img
-
-    replacement = replacement.resize((x1 - x0, y1 - y0))
-    img.paste(replacement, (x0, y0))
-
-    return img
-
 
 for i, fecha in enumerate(common_dates):
     # Mosaico solo con imagen satelital, sin barra superior.
@@ -219,7 +200,6 @@ for i, fecha in enumerate(common_dates):
     for tile, td, tb, fmap in tile_frame_maps:
         img = Image.open(fmap[fecha]).convert("RGB")
         img_content = extract_tile_content(img)
-        img_content = remove_source_label(img_content)
 
         tr0, tc0, tr1, tc1 = tb
         x = tc0 - mc0

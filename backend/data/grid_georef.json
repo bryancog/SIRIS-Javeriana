@@ -1,0 +1,15 @@
+{
+  "source": "/mnt/d/salida_sentinel/rasters/2016_S1_1/20160103_18NTG_S2A_MSIL2A_20160103T154242_R068_T18NTG_20210527T072315_B04_clip.tif",
+  "crs": "EPSG:32618",
+  "transform": [
+    10.0,
+    0.0,
+    227780.0,
+    0.0,
+    -10.0,
+    139030.0
+  ],
+  "width": 3964,
+  "height": 2504,
+  "sr_scale": 4
+}
