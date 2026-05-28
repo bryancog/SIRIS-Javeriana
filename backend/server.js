@@ -34,7 +34,8 @@ const MIME_TYPES = {
   ".jpeg": "image/jpeg",
   ".svg": "image/svg+xml",
   ".ico": "image/x-icon",
-  ".mp4": "video/mp4"
+  ".mp4": "video/mp4",
+  ".zip": "application/zip"
 };
 
 const server = http.createServer(async (req, res) => {
@@ -99,52 +100,62 @@ const server = http.createServer(async (req, res) => {
   }
 
   if (req.method === "POST" && requestUrl.pathname === "/api/area/export") {
-  if (!session) {
-    sendJson(res, 401, { message: "Sesion no autenticada." });
-    return;
-  }
-
-  const body = await readJsonBody(req);
-
-  if (!body || !Number.isFinite(body.row0) || !Number.isFinite(body.col0) || !Number.isFinite(body.height) || !Number.isFinite(body.width)) {
-    sendJson(res, 400, { message: "Parametros invalidos." });
-    return;
-  }
-
-  const outName = `area_${Date.now()}`;
-
-  try {
-    await runAreaExport({
-      row0: body.row0,
-      col0: body.col0,
-      height: body.height,
-      width: body.width,
-      outName
-    });
-
-    const exportDir = path.join(EXPORTS_ROOT, outName);
-    const files = fs.readdirSync(exportDir);
-    const videoFile = files.find((file) => file.toLowerCase().endsWith(".mp4"));
-
-    if (!videoFile) {
-      sendJson(res, 500, {
-        message: "La exportacion terminó, pero no se encontró el video MP4."
-      });
+    if (!session) {
+      sendJson(res, 401, { message: "Sesion no autenticada." });
       return;
     }
 
-    sendJson(res, 200, {
-      message: "Exportacion generada.",
-      outName,
-      videoUrl: `/exports/${outName}/${videoFile}`,
-      framesUrl: `/exports/${outName}/frames_jpg/`
-    });    
+    const body = await readJsonBody(req);
 
-  } catch (error) {
-    sendJson(res, 500, { message: "Error generando exportacion.", error: error.message });
-  }
+    const hasPolygon = Array.isArray(body?.polygon) && body.polygon.length >= 3;
+    const hasBox =
+      Number.isFinite(body?.row0) &&
+      Number.isFinite(body?.col0) &&
+      Number.isFinite(body?.height) &&
+      Number.isFinite(body?.width);
 
-  return;
+    if (!hasPolygon && !hasBox) {
+      sendJson(res, 400, { message: "Parametros invalidos." });
+      return;
+    }
+
+    const outName = `area_${Date.now()}`;
+
+    try {
+      await runAreaExport({
+        row0: body.row0,
+        col0: body.col0,
+        height: body.height,
+        width: body.width,
+        polygon: body.polygon,
+        outName
+      });
+
+      const exportDir = path.join(EXPORTS_ROOT, outName);
+      const files = fs.readdirSync(exportDir);
+
+      const videoFile = files.find((file) => file.toLowerCase().endsWith(".mp4"));
+      const zipFile = files.find((file) => file.toLowerCase().endsWith(".zip"));
+
+      if (!videoFile) {
+        sendJson(res, 500, {
+          message: "La exportacion terminó, pero no se encontró el video MP4."
+        });
+        return;
+      }
+
+      sendJson(res, 200, {
+        message: "Exportacion generada.",
+        outName,
+        videoUrl: `/exports/${outName}/${videoFile}`,
+        framesUrl: `/exports/${outName}/frames_jpg/`,
+        imagesZipUrl: zipFile ? `/exports/${outName}/${zipFile}` : null
+      });
+    } catch (error) {
+      sendJson(res, 500, { message: "Error generando exportacion.", error: error.message });
+    }
+
+    return;
   }
 
   if (req.method === "GET" && requestUrl.pathname === "/api/study-area") {
@@ -205,22 +216,36 @@ server.listen(PORT, HOST, () => {
   console.log(`Credenciales de prueba -> usuario: ${TEST_USER.username} | contrasena: ${TEST_USER.password}`);
 });
 
-function runAreaExport({ row0, col0, height, width, outName }) {
+function runAreaExport({ row0, col0, height, width, polygon, outName }) {
   return new Promise((resolve, reject) => {
     const scriptPath = path.join(__dirname, "scripts", "generar_area_desde_tiles.py");
 
     activeAreaOutName = outName;
 
-    const child = spawn("python", [
+    const args = [
       scriptPath,
       "--web-root", WEB_EXPORTS_ROOT,
-      "--row0", String(Math.round(row0)),
-      "--col0", String(Math.round(col0)),
-      "--height", String(Math.round(height)),
-      "--width", String(Math.round(width)),
       "--out-name", outName,
       "--fps", "8"
-    ], {
+    ];
+
+    if (polygon) {
+      const exportPath = path.join(EXPORTS_ROOT, outName);
+      fs.mkdirSync(exportPath, { recursive: true });
+
+      const polygonPath = path.join(exportPath, "polygon.json");
+      fs.writeFileSync(polygonPath, JSON.stringify(polygon), "utf8");
+
+      args.push("--polygon-file", polygonPath);
+      args.push("--grid-georef", path.join(DATA_ROOT, "grid_georef.json"));
+    } else {
+      args.push("--row0", String(Math.round(row0)));
+      args.push("--col0", String(Math.round(col0)));
+      args.push("--height", String(Math.round(height)));
+      args.push("--width", String(Math.round(width)));
+    }
+
+    const child = spawn("python", args, {
       cwd: DATA_ROOT
     });
 

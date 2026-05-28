@@ -183,13 +183,10 @@ function buildPolygonWkt(layer) {
 async function exportSelectedArea(layer, polygonAreaM2) {
   const bounds = layer.getBounds();
 
-  const polygon = layer.getLatLngs()[0] || [];
-  const bbox = polygonToMockSrBoundingBox(polygon);
-
-  const row0 = bbox.row0;
-  const col0 = bbox.col0;
-  const height = bbox.height;
-  const width = bbox.width;
+  const polygon = (layer.getLatLngs()[0] || []).map((p) => ({
+    lat: p.lat,
+    lng: p.lng
+  }));
 
   resultsList.innerHTML = "";
   resultsHint.classList.remove("is-error");
@@ -203,7 +200,7 @@ async function exportSelectedArea(layer, polygonAreaM2) {
       headers: {
         "Content-Type": "application/json"
       },
-      body: JSON.stringify({ row0, col0, height, width })
+      body: JSON.stringify({ polygon })
     });
 
     const payload = await response.json();
@@ -218,9 +215,19 @@ async function exportSelectedArea(layer, polygonAreaM2) {
     const item = document.createElement("li");
     item.innerHTML = `
       <strong>Area seleccionada</strong>
-      <span>Video generado para el area solicitada</span>
+      <span>Video e imagenes generadas para el area solicitada</span>
+
       <video src="${payload.videoUrl}" controls style="width:100%; margin-top:10px; border-radius:12px;"></video>
-      <a href="${payload.videoUrl}" target="_blank">Abrir video</a>
+
+      <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:12px;">
+        <a href="${payload.videoUrl}" target="_blank">Abrir video</a>
+
+        ${
+          payload.imagesZipUrl
+            ? `<a href="${payload.imagesZipUrl}" download>Descargar imagenes ZIP</a>`
+            : ""
+        }
+      </div>
     `;
     resultsList.appendChild(item);
   } catch (error) {
@@ -263,7 +270,7 @@ async function cancelActiveExport() {
 }
 
 function polygonToMockSrBoundingBox(polygon) {
-  // Bounding box del polígono en lat/lng
+
   const lats = polygon.map((p) => p.lat);
   const lngs = polygon.map((p) => p.lng);
 
@@ -272,61 +279,53 @@ function polygonToMockSrBoundingBox(polygon) {
   const minLng = Math.min(...lngs);
   const maxLng = Math.max(...lngs);
 
-  /*
-    Conversión temporal aproximada lat/lng -> coordenadas SR.
-    Esta fórmula se calibra con el área de estudio.
-    Luego la reemplazamos por una transformación geoespacial real.
-  */
-
+  // AJUSTADO A TU MOSAICO REAL
   const STUDY_EXTENT = {
-    minLat: 0.85,
-    maxLat: 1.65,
-    minLng: -78.55,
-    maxLng: -76.55,
+    minLat: 0.95,
+    maxLat: 1.55,
 
-    // Dimensiones aproximadas del mosaico SR disponible
+    minLng: -78.10,
+    maxLng: -76.80,
+
     minRow: 0,
     maxRow: 8192,
+
     minCol: 0,
-    maxCol: 15872
+    maxCol: 14336
   };
 
   function latToRow(lat) {
-    const t = (STUDY_EXTENT.maxLat - lat) / (STUDY_EXTENT.maxLat - STUDY_EXTENT.minLat);
-    return STUDY_EXTENT.minRow + t * (STUDY_EXTENT.maxRow - STUDY_EXTENT.minRow);
+    return (
+      ((STUDY_EXTENT.maxLat - lat) /
+        (STUDY_EXTENT.maxLat - STUDY_EXTENT.minLat))
+      * STUDY_EXTENT.maxRow
+    );
   }
 
   function lngToCol(lng) {
-    const t = (lng - STUDY_EXTENT.minLng) / (STUDY_EXTENT.maxLng - STUDY_EXTENT.minLng);
-    return STUDY_EXTENT.minCol + t * (STUDY_EXTENT.maxCol - STUDY_EXTENT.minCol);
+    return (
+      ((lng - STUDY_EXTENT.minLng) /
+        (STUDY_EXTENT.maxLng - STUDY_EXTENT.minLng))
+      * STUDY_EXTENT.maxCol
+    );
   }
 
-  const rowA = latToRow(maxLat);
-  const rowB = latToRow(minLat);
-  const colA = lngToCol(minLng);
-  const colB = lngToCol(maxLng);
+  let row0 = Math.floor(latToRow(maxLat));
+  let row1 = Math.ceil(latToRow(minLat));
 
-  let row0 = Math.floor(Math.min(rowA, rowB));
-  let col0 = Math.floor(Math.min(colA, colB));
-  let row1 = Math.ceil(Math.max(rowA, rowB));
-  let col1 = Math.ceil(Math.max(colA, colB));
+  let col0 = Math.floor(lngToCol(minLng));
+  let col1 = Math.ceil(lngToCol(maxLng));
 
-  // Limitar al mosaico
-  row0 = Math.max(0, row0);
-  col0 = Math.max(0, col0);
-  row1 = Math.min(STUDY_EXTENT.maxRow, row1);
-  col1 = Math.min(STUDY_EXTENT.maxCol, col1);
+  row0 = Math.max(0, Math.min(STUDY_EXTENT.maxRow, row0));
+  row1 = Math.max(0, Math.min(STUDY_EXTENT.maxRow, row1));
 
-  // Tamaño mínimo para que el video no salga diminuto
-  const minSize = 512;
-
-  let height = Math.max(minSize, row1 - row0);
-  let width = Math.max(minSize, col1 - col0);
+  col0 = Math.max(0, Math.min(STUDY_EXTENT.maxCol, col0));
+  col1 = Math.max(0, Math.min(STUDY_EXTENT.maxCol, col1));
 
   return {
     row0,
     col0,
-    height,
-    width
+    height: Math.max(512, row1 - row0),
+    width: Math.max(512, col1 - col0)
   };
 }

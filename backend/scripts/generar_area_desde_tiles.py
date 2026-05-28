@@ -3,7 +3,10 @@ import argparse
 import re
 import shutil
 import subprocess
-from PIL import Image
+import json
+import math
+from pyproj import Transformer
+from PIL import Image, ImageDraw, ImageFont
 
 TILE_SIZE_RAW = 512
 SCALE = 4
@@ -42,20 +45,76 @@ def get_frame_map(tile_dir):
 
 
 ap = argparse.ArgumentParser()
-ap.add_argument("--web-root", default="web_exports")
-ap.add_argument("--row0", type=int, required=True, help="fila inicial en coordenadas SR globales")
-ap.add_argument("--col0", type=int, required=True, help="columna inicial en coordenadas SR globales")
-ap.add_argument("--height", type=int, required=True)
-ap.add_argument("--width", type=int, required=True)
-ap.add_argument("--out-name", default="area_export")
+
+ap.add_argument("--web-root", required=True)
+ap.add_argument("--out-name", required=True)
 ap.add_argument("--fps", type=int, default=8)
+
+ap.add_argument("--row0", type=int, required=False)
+ap.add_argument("--col0", type=int, required=False)
+ap.add_argument("--height", type=int, required=False)
+ap.add_argument("--width", type=int, required=False)
+
+ap.add_argument("--polygon-file", required=False)
+ap.add_argument("--grid-georef", required=False)
+
 ap.add_argument("--copy-if-single-tile", action="store_true")
+
 args = ap.parse_args()
 
 web_root = Path(args.web_root)
 out_root = Path("area_exports") / args.out_name
 frames_out = out_root / "frames_jpg"
 frames_out.mkdir(parents=True, exist_ok=True)
+
+def polygon_to_sr_bbox(polygon_file, grid_georef):
+    polygon = json.loads(Path(polygon_file).read_text(encoding="utf-8"))
+    meta = json.loads(Path(grid_georef).read_text(encoding="utf-8"))
+
+    crs = meta["crs"]
+    a, b, c, d, e, f = meta["transform"]
+    scale = int(meta.get("sr_scale", 4))
+
+    transformer = Transformer.from_crs("EPSG:4326", crs, always_xy=True)
+
+    rows = []
+    cols = []
+
+    for p in polygon:
+        lng = float(p["lng"])
+        lat = float(p["lat"])
+
+        x, y = transformer.transform(lng, lat)
+
+        # Para rasters norte-arriba: b=d=0 normalmente
+        col = (x - c) / a
+        row = (y - f) / e
+
+        rows.append(row * scale)
+        cols.append(col * scale)
+
+    row0 = math.floor(min(rows))
+    row1 = math.ceil(max(rows))
+    col0 = math.floor(min(cols))
+    col1 = math.ceil(max(cols))
+
+    return row0, col0, row1 - row0, col1 - col0
+
+if args.polygon_file:
+    if not args.grid_georef:
+        raise SystemExit("Falta --grid-georef")
+
+    row0, col0, height, width = polygon_to_sr_bbox(args.polygon_file, args.grid_georef)
+
+    args.row0 = row0
+    args.col0 = col0
+    args.height = height
+    args.width = width
+
+    print("BBox calculado desde poligono:", row0, col0, height, width)
+else:
+    if args.row0 is None or args.col0 is None or args.height is None or args.width is None:
+        raise SystemExit("Debe enviar row0/col0/height/width o polygon-file")
 
 area = (args.row0, args.col0, args.row0 + args.height, args.col0 + args.width)
 
@@ -107,43 +166,88 @@ mosaic_h = mr1 - mr0
 mosaic_w = mc1 - mc0
 
 crop_left = args.col0 - mc0
-crop_top = args.row0 - mr0 + BAR_H
+crop_top = args.row0 - mr0
 crop_right = crop_left + args.width
 crop_bottom = crop_top + args.height
 
+def extract_tile_content(img):
+    """
+    Extrae solo la imagen útil del tile.
+    Si el frame trae barra superior, la elimina.
+    Si no trae barra, no recorta innecesariamente.
+    """
+    src_bar = max(0, img.height - TILE_SIZE_SR)
+
+    content = img.crop((
+        0,
+        src_bar,
+        min(img.width, TILE_SIZE_SR),
+        min(img.height, src_bar + TILE_SIZE_SR)
+    ))
+
+    if content.size != (TILE_SIZE_SR, TILE_SIZE_SR):
+        fixed = Image.new("RGB", (TILE_SIZE_SR, TILE_SIZE_SR), (0, 0, 0))
+        fixed.paste(content, (0, 0))
+        return fixed
+
+    return content
+
+def remove_source_label(img):
+    """
+    Elimina la etiqueta interna heredada del tile original.
+    Ajusta coordenadas si la caja cambia de posición/tamaño.
+    """
+    # Caja aproximada del sello negro con fecha dentro del tile
+    x0, y0, x1, y1 = 0, TILE_SIZE_SR - 95, 170, TILE_SIZE_SR - 35
+
+    # Tomar una zona vecina a la derecha para cubrir la etiqueta
+    replacement = img.crop((x1, y0, min(x1 + (x1 - x0), img.width), y1))
+
+    if replacement.size[0] == 0 or replacement.size[1] == 0:
+        return img
+
+    replacement = replacement.resize((x1 - x0, y1 - y0))
+    img.paste(replacement, (x0, y0))
+
+    return img
+
+
 for i, fecha in enumerate(common_dates):
-    # El frame de tile tiene barra superior. El mosaico también debe contemplarla.
-    mosaic = Image.new("RGB", (mosaic_w, mosaic_h + BAR_H), (0, 0, 0))
+    # Mosaico solo con imagen satelital, sin barra superior.
+    mosaic = Image.new("RGB", (mosaic_w, mosaic_h), (0, 0, 0))
 
     for tile, td, tb, fmap in tile_frame_maps:
         img = Image.open(fmap[fecha]).convert("RGB")
+        img_content = extract_tile_content(img)
+        img_content = remove_source_label(img_content)
+
         tr0, tc0, tr1, tc1 = tb
         x = tc0 - mc0
         y = tr0 - mr0
-        mosaic.paste(img.crop((0, BAR_H, TILE_SIZE_SR, TILE_SIZE_SR + BAR_H)), (x, y + BAR_H))
 
-    # copiar barra superior del primer tile, o crear una barra nueva simple
-    from PIL import ImageDraw, ImageFont
-    draw = ImageDraw.Draw(mosaic)
-    draw.rectangle((0, 0, mosaic_w, BAR_H), fill=(0, 0, 0))
+        mosaic.paste(img_content, (x, y))
+
+    cropped = mosaic.crop((crop_left, crop_top, crop_right, crop_bottom))
+
+    # Crear salida final con barra superior propia.
+    final = Image.new("RGB", (args.width, args.height + BAR_H), (0, 0, 0))
+    final.paste(cropped, (0, BAR_H))
+
     label = f"{fecha[:4]}-{fecha[4:6]}-{fecha[6:8]} | area {args.out_name}"
+
     try:
         font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 54)
     except:
         font = None
-    draw.text((40, 28), label, fill=(255, 255, 255), font=font)
 
-    cropped = mosaic.crop((crop_left, crop_top - BAR_H, crop_right, crop_bottom))
-    # agregar barra superior propia al recorte
-    final = Image.new("RGB", (args.width, args.height + BAR_H), (0, 0, 0))
-    final.paste(cropped, (0, BAR_H))
     d2 = ImageDraw.Draw(final)
+    d2.rectangle((0, 0, args.width, BAR_H), fill=(0, 0, 0))
     d2.text((40, 28), label, fill=(255, 255, 255), font=font)
 
     out = frames_out / f"frame_{i:04d}_{fecha}.jpg"
     final.save(out, quality=85, optimize=True)
 
-    if i == 0 or (i + 1) % 50 == 0 or i == len(common_dates):
+    if i == 0 or (i + 1) % 50 == 0 or i == len(common_dates) - 1:
         print(f"{i+1}/{len(common_dates)} {out}", flush=True)
 
 video = out_root / f"{args.out_name}.mp4"
@@ -161,7 +265,7 @@ cmd = [
     "-f", "concat",
     "-safe", "0",
     "-i", str(frames_list),
-    "-vf", "format=yuv420p",
+    "-vf", "scale=trunc(iw/2)*2:trunc(ih/2)*2,format=yuv420p",
     "-c:v", "libx264",
     "-crf", "20",
     "-preset", "medium",
@@ -170,5 +274,20 @@ cmd = [
 
 print("Creando video...")
 subprocess.run(cmd, check=True)
+
 print("Video:", video)
 print("Frames:", frames_out)
+
+zip_base = out_root / f"{args.out_name}_frames"
+zip_path = Path(str(zip_base) + ".zip")
+
+if zip_path.exists():
+    zip_path.unlink()
+
+created_zip = shutil.make_archive(
+    str(zip_base),
+    "zip",
+    root_dir=frames_out
+)
+
+print("ZIP imagenes:", created_zip)
