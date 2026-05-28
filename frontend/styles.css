@@ -330,3 +330,57 @@ input {
     border-radius: 22px;
   }
 }
+
+.date-export-box {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 18px;
+  padding: 16px;
+  margin-top: 16px;
+  margin-bottom: 16px;
+}
+
+.date-export-header {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 12px;
+}
+
+.date-export-header strong {
+  font-size: 1rem;
+}
+
+.date-export-header small {
+  opacity: 0.78;
+}
+
+.date-fields {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+.date-fields label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.date-fields input[type="date"] {
+  width: 100%;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 12px;
+  padding: 10px 12px;
+  font: inherit;
+  color: #10231d;
+  background: #ffffff;
+  outline: none;
+}
+
+.date-fields input[type="date"]:focus {
+  border-color: #83d6b3;
+  box-shadow: 0 0 0 3px rgba(131, 214, 179, 0.22);
+}

@@ -39,6 +39,27 @@
           <small id="areaStatus">Area maxima permitida: 1000 km2</small>
         </div>
 
+        <div class="date-export-box">
+          <div class="date-export-header">
+            <span class="status-label">Filtro temporal</span>
+            <strong>Rango de fechas</strong>
+            <small>Selecciona las fechas que quieres exportar.</small>
+             <small>(Si no se selecciona fecha, se descargaran todas las imagenes de los ultimos 10 años).</small>
+          </div>
+
+          <div class="date-fields">
+            <label for="dateFrom">
+              Fecha inicial
+              <input type="date" id="dateFrom">
+            </label>
+
+            <label for="dateTo">
+              Fecha final
+              <input type="date" id="dateTo">
+            </label>
+          </div>
+        </div>
+
         <div class="results-panel">
           <div class="results-heading">
             <h3>IDs detectados</h3>

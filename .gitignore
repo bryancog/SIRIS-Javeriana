@@ -1,13 +1,27 @@
-@"
 node_modules/
+
+# Datos pesados/generados
 backend/data/web_exports/
 backend/data/area_exports/
+git pull origin main
+# Archivos geoespaciales pesados
 backend/data/*.gpkg
+
+# Permitir el área de estudio si es necesaria para el frontend
 backend/data/*.geojson
-*.npy
-*.mp4
-*.jpg
-*.jpeg
-*.png
+!backend/data/study_area.geojson
+
+# Imágenes, videos y zips generados dentro de backend/data
+backend/data/**/*.zip
+backend/data/**/*.mp4
+backend/data/**/*.jpg
+backend/data/**/*.jpeg
+backend/data/**/*.png
+backend/data/**/*.npy
+
+# Python
+__pycache__/
+*.pyc
+
+# Entorno
 .env
-"@ | Out-File -Encoding utf8 .gitignore

@@ -188,6 +188,19 @@ async function exportSelectedArea(layer, polygonAreaM2) {
     lng: p.lng
   }));
 
+  const dateFrom = document.getElementById("dateFrom")?.value || "";
+  const dateTo = document.getElementById("dateTo")?.value || "";
+
+  if (!dateFrom || !dateTo) {
+    clearResults("Selecciona fecha inicial y fecha final antes de exportar.");
+    return;
+  }
+
+  if (dateFrom > dateTo) {
+    clearResults("La fecha inicial no puede ser posterior a la fecha final.");
+    return;
+  }
+
   resultsList.innerHTML = "";
   resultsHint.classList.remove("is-error");
   resultsHint.textContent = "Generando imagenes y video del area seleccionada...";
@@ -195,12 +208,17 @@ async function exportSelectedArea(layer, polygonAreaM2) {
   areaStatus.textContent = `Area seleccionada: ${formatAreaKm2(polygonAreaM2)} km2`;
 
   try {
+    
     const response = await fetch("/api/area/export", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
       },
-      body: JSON.stringify({ polygon })
+      body: JSON.stringify({
+        polygon,
+        dateFrom,
+        dateTo
+      })
     });
 
     const payload = await response.json();
@@ -223,8 +241,8 @@ async function exportSelectedArea(layer, polygonAreaM2) {
         <a href="${payload.videoUrl}" target="_blank">Abrir video</a>
 
         ${
-          payload.imagesZipUrl
-            ? `<a href="${payload.imagesZipUrl}" download>Descargar imagenes ZIP</a>`
+          payload.geotiffZipUrl
+            ? `<a href="${payload.geotiffZipUrl}" download>Descargar GeoTIFF + CSV</a>`
             : ""
         }
       </div>
