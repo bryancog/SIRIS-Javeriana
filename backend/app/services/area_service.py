@@ -11,6 +11,26 @@ active_area_process: Optional[subprocess.Popen] = None
 active_geotiff_process: Optional[subprocess.Popen] = None
 active_area_out_name: Optional[str] = None
 
+area_export_status = {
+    "running": False,
+    "stage": "idle",
+    "message": "Listo.",
+    "outName": None
+}
+
+
+def set_area_export_status(
+    *,
+    running: bool,
+    stage: str,
+    message: str,
+    out_name: Optional[str] = None
+) -> None:
+    area_export_status["running"] = running
+    area_export_status["stage"] = stage
+    area_export_status["message"] = message
+    area_export_status["outName"] = out_name
+
 
 def _date_to_yyyymmdd(value: Optional[str]) -> Optional[str]:
     if not value:
@@ -217,11 +237,14 @@ def cancel_active_area_export(exports_root: Path) -> None:
             shutil.rmtree(export_path, ignore_errors=True)
 
         active_area_out_name = None
+        
+    set_area_export_status(
+        running=False,
+        stage="cancelled",
+        message="Exportación cancelada.",
+        out_name=None
+    )
 
 
 def get_area_export_status():
-    return {
-        "areaRunning": active_area_process is not None and active_area_process.poll() is None,
-        "geotiffRunning": active_geotiff_process is not None and active_geotiff_process.poll() is None,
-        "outName": active_area_out_name
-    }
+    return area_export_status

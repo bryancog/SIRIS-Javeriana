@@ -14,9 +14,9 @@ app = FastAPI(
     version="1.0.0"
 )
 
-app.include_router(auth.router)
-app.include_router(area.router)
-app.include_router(exports.router)
+app.include_router(auth.router, tags=["Autenticación"])
+app.include_router(area.router, tags=["Exportación de áreas"])
+app.include_router(exports.router, tags=["Descarga de archivos"])
 
 
 @app.get("/")

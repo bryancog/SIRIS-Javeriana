@@ -384,3 +384,56 @@ input {
   border-color: #83d6b3;
   box-shadow: 0 0 0 3px rgba(131, 214, 179, 0.22);
 }
+
+.export-progress-box {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 18px;
+  padding: 16px;
+  margin-top: 0;
+  margin-bottom: 16px;
+}
+
+.export-progress-title {
+  color: var(--text-soft);
+  font-size: 0.85rem;
+  margin-bottom: 6px;
+}
+
+.export-progress-message {
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.export-progress-box.is-running .export-progress-message::after {
+  content: "";
+  display: inline-block;
+  width: 18px;
+  animation: exportDots 1.2s infinite;
+}
+
+.export-progress-box.is-error .export-progress-message {
+  color: #ffb0a7;
+}
+
+.export-progress-box.is-done .export-progress-message {
+  color: var(--accent);
+}
+
+@keyframes exportDots {
+  0% {
+    content: "";
+  }
+
+  33% {
+    content: ".";
+  }
+
+  66% {
+    content: "..";
+  }
+
+  100% {
+    content: "...";
+  }
+}

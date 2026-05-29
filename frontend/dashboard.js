@@ -14,6 +14,7 @@ const COLOMBIA_BOUNDS = [
 
 let mapInstance;
 let editableLayers;
+let exportProgressTimer = null;
 
 bootDashboard();
 
@@ -49,6 +50,78 @@ async function requireSession() {
   } catch (error) {
     window.location.href = "/index.html";
     return null;
+  }
+}
+
+function setExportProgress(message, state = "running") {
+  const box = document.getElementById("exportProgressBox");
+  const messageEl = document.getElementById("exportProgressMessage");
+
+  if (!box || !messageEl) {
+    return;
+  }
+
+  box.hidden = false;
+  messageEl.textContent = message || "Procesando exportación...";
+
+  box.classList.remove("is-running", "is-error", "is-done");
+
+  if (state === "running") {
+    box.classList.add("is-running");
+  }
+
+  if (state === "error") {
+    box.classList.add("is-error");
+  }
+
+  if (state === "done") {
+    box.classList.add("is-done");
+  }
+}
+
+function startExportProgressPolling() {
+  stopExportProgressPolling();
+
+  setExportProgress("Generando video...", "running");
+
+  exportProgressTimer = setInterval(async () => {
+    try {
+      const response = await fetch("/api/area/geotiff-status", {
+        method: "GET",
+        credentials: "include"
+      });
+
+      if (!response.ok) {
+        return;
+      }
+
+      const status = await response.json();
+
+      if (status.message) {
+        if (status.stage === "done") {
+          setExportProgress(status.message, "done");
+          stopExportProgressPolling();
+          return;
+        }
+
+        if (status.stage === "error" || status.stage === "cancelled") {
+          setExportProgress(status.message, "error");
+          stopExportProgressPolling();
+          return;
+        }
+
+        setExportProgress(status.message, "running");
+      }
+    } catch (error) {
+      console.warn("No se pudo consultar el progreso:", error);
+    }
+  }, 1500);
+}
+
+function stopExportProgressPolling() {
+  if (exportProgressTimer) {
+    clearInterval(exportProgressTimer);
+    exportProgressTimer = null;
   }
 }
 
@@ -181,8 +254,6 @@ function buildPolygonWkt(layer) {
 }
 
 async function exportSelectedArea(layer, polygonAreaM2) {
-  const bounds = layer.getBounds();
-
   const polygon = (layer.getLatLngs()[0] || []).map((p) => ({
     lat: p.lat,
     lng: p.lng
@@ -193,11 +264,13 @@ async function exportSelectedArea(layer, polygonAreaM2) {
 
   if (!dateFrom || !dateTo) {
     clearResults("Selecciona fecha inicial y fecha final antes de exportar.");
+    setExportProgress("Selecciona fecha inicial y fecha final antes de exportar.", "error");
     return;
   }
 
   if (dateFrom > dateTo) {
     clearResults("La fecha inicial no puede ser posterior a la fecha final.");
+    setExportProgress("La fecha inicial no puede ser posterior a la fecha final.", "error");
     return;
   }
 
@@ -207,13 +280,15 @@ async function exportSelectedArea(layer, polygonAreaM2) {
   resultsCount.textContent = "Procesando";
   areaStatus.textContent = `Area seleccionada: ${formatAreaKm2(polygonAreaM2)} km2`;
 
+  startExportProgressPolling();
+
   try {
-    
     const response = await fetch("/api/area/export", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
       },
+      credentials: "include",
       body: JSON.stringify({
         polygon,
         dateFrom,
@@ -224,8 +299,21 @@ async function exportSelectedArea(layer, polygonAreaM2) {
     const payload = await response.json();
 
     if (!response.ok) {
-      throw new Error(payload.message || "Error generando exportacion.");
+      const backendMessage =
+        payload?.message ||
+        payload?.detail?.message ||
+        payload?.detail ||
+        "Error generando exportacion.";
+
+      throw new Error(
+        typeof backendMessage === "string"
+          ? backendMessage
+          : "Error generando exportacion."
+      );
     }
+
+    stopExportProgressPolling();
+    setExportProgress("Exportación finalizada.", "done");
 
     resultsHint.textContent = "Exportacion generada correctamente.";
     resultsCount.textContent = "1 video";
@@ -233,7 +321,7 @@ async function exportSelectedArea(layer, polygonAreaM2) {
     const item = document.createElement("li");
     item.innerHTML = `
       <strong>Area seleccionada</strong>
-      <span>Video e imagenes generadas para el area solicitada</span>
+      <span>Video, GeoTIFF y CSV generados para el area solicitada</span>
 
       <video src="${payload.videoUrl}" controls style="width:100%; margin-top:10px; border-radius:12px;"></video>
 
@@ -247,8 +335,11 @@ async function exportSelectedArea(layer, polygonAreaM2) {
         }
       </div>
     `;
+
     resultsList.appendChild(item);
   } catch (error) {
+    stopExportProgressPolling();
+    setExportProgress("Error generando exportación.", "error");
     clearResults(error.message);
   }
 }
@@ -280,8 +371,12 @@ async function loadStudyArea() {
 async function cancelActiveExport() {
   try {
     await fetch("/api/area/cancel", {
-      method: "POST"
+      method: "POST",
+      credentials: "include"
     });
+
+    stopExportProgressPolling();
+    setExportProgress("Exportación cancelada.", "error");
   } catch (error) {
     console.error("No se pudo cancelar la exportacion activa", error);
   }

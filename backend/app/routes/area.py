@@ -18,7 +18,8 @@ from app.services.area_service import (
     run_area_export,
     run_geotiff_area_export,
     cancel_active_area_export,
-    get_area_export_status
+    get_area_export_status,
+    set_area_export_status
 )
 
 
@@ -59,6 +60,13 @@ def api_area_export(
 
     out_name = f"area_{int(time.time() * 1000)}"
 
+    set_area_export_status(
+        running=True,
+        stage="video",
+        message="Generando video...",
+        out_name=out_name
+    )
+
     try:
         run_area_export(
             row0=payload.row0,
@@ -77,6 +85,13 @@ def api_area_export(
         geotiff_zip_file = None
 
         if has_polygon:
+            set_area_export_status(
+                running=True,
+                stage="geotiff",
+                message="Generando GeoTIFF...",
+                out_name=out_name
+            )
+
             run_geotiff_area_export(
                 polygon=payload.polygon,
                 date_from=payload.dateFrom,
@@ -87,6 +102,13 @@ def api_area_export(
                 npy_roots=NPY_ROOTS,
                 mask_root=MASK_ROOT,
                 workers=GEOTIFF_WORKERS
+            )
+
+            set_area_export_status(
+                running=True,
+                stage="zip",
+                message="Comprimiendo ZIP...",
+                out_name=out_name
             )
 
         export_dir = EXPORTS_ROOT / out_name
@@ -116,6 +138,13 @@ def api_area_export(
                     "message": "La exportacion termino, pero no se encontro el video MP4."
                 }
             )
+        
+        set_area_export_status(
+            running=False,
+            stage="done",
+            message="Exportación finalizada.",
+            out_name=out_name
+        )
 
         return {
             "message": "Exportacion generada.",
@@ -125,6 +154,14 @@ def api_area_export(
         }
 
     except Exception as error:
+
+        set_area_export_status(
+            running=False,
+            stage="error",
+            message="Error generando exportación.",
+            out_name=out_name
+        )
+
         return JSONResponse(
             status_code=500,
             content={
