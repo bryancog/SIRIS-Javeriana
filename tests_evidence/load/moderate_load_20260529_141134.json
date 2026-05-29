@@ -1,0 +1,67 @@
+{
+  "test_id": "LOAD-MODERATE-v0.5",
+  "started_at": "2026-05-29 14:11:34",
+  "finished_at": "2026-05-29 14:11:38",
+  "base_url": "http://127.0.0.1:3000/",
+  "users": 10,
+  "requests_per_user": 20,
+  "think_time_ms": 100,
+  "acceptance_criteria": {
+    "min_success_rate": 0.95,
+    "max_p95_ms": 2000.0,
+    "no_failed_business_requests": true
+  },
+  "summary": {
+    "total_business_requests": 200,
+    "successful_business_requests": 200,
+    "failed_business_requests": 0,
+    "success_rate": 1.0,
+    "duration_seconds": 4.2,
+    "requests_per_second": 47.6,
+    "setup_requests": 20,
+    "setup_successful": 20,
+    "latency_ms": {
+      "min": 1.37,
+      "mean": 2.36,
+      "median": 2.25,
+      "p90": 3.13,
+      "p95": 3.71,
+      "p99": 4.03,
+      "max": 5.32
+    },
+    "status_counts": {
+      "200": 200
+    },
+    "endpoint_summary": {
+      "home": {
+        "total": 50,
+        "ok": 50,
+        "failed": 0,
+        "mean_ms": 2.48,
+        "p95_ms": 3.84
+      },
+      "session": {
+        "total": 50,
+        "ok": 50,
+        "failed": 0,
+        "mean_ms": 2.04,
+        "p95_ms": 2.71
+      },
+      "study_area": {
+        "total": 50,
+        "ok": 50,
+        "failed": 0,
+        "mean_ms": 2.82,
+        "p95_ms": 3.97
+      },
+      "export_status": {
+        "total": 50,
+        "ok": 50,
+        "failed": 0,
+        "mean_ms": 2.09,
+        "p95_ms": 2.88
+      }
+    }
+  },
+  "ok": true
+}

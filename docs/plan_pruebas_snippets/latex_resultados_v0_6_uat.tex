@@ -1,0 +1,49 @@
+% Fragmento sugerido para documentar la prueba UAT v0.6.
+% Actualizar los estados con el resultado real.
+
+\subsection{Resultados de prueba de aceptación de usuario UAT v0.6}
+
+La prueba de aceptación de usuario se diseñó para validar el flujo principal del sistema
+desde la perspectiva de un usuario final. A diferencia de las pruebas automatizadas
+previas, esta validación se ejecuta manualmente con apoyo de evidencias visuales,
+verificando que el usuario pueda acceder, autenticarse, seleccionar fechas, dibujar un
+polígono, iniciar la exportación asíncrona, observar el progreso, visualizar el video,
+descargar el ZIP GeoTIFF/CSV y cerrar sesión.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|p{2.3cm}|p{8.7cm}|p{2.2cm}|}
+\hline
+\textbf{ID} & \textbf{Caso de aceptación} & \textbf{Estado} \\
+\hline
+UAT-01 & Acceso a la aplicación desde la URL evaluada. & Pendiente \\
+\hline
+UAT-02 & Registro de usuario desde la interfaz. & Pendiente \\
+\hline
+UAT-03 & Inicio de sesión con credenciales válidas. & Pendiente \\
+\hline
+UAT-04 & Visualización completa del dashboard, mapa y panel lateral. & Pendiente \\
+\hline
+UAT-05 & Selección de fecha inicial y fecha final. & Pendiente \\
+\hline
+UAT-06 & Dibujo de polígono sobre el mapa. & Pendiente \\
+\hline
+UAT-07 & Inicio de exportación asíncrona al cerrar el polígono. & Pendiente \\
+\hline
+UAT-08 & Seguimiento del estado de exportación en la interfaz. & Pendiente \\
+\hline
+UAT-09 & Visualización del video generado. & Pendiente \\
+\hline
+UAT-10 & Descarga del ZIP GeoTIFF/CSV. & Pendiente \\
+\hline
+UAT-11 & Claridad general del flujo y mensajes para usuario final. & Pendiente \\
+\hline
+UAT-12 & Cierre de sesión desde la interfaz. & Pendiente \\
+\hline
+\end{tabular}
+\caption{Casos de aceptación de usuario UAT v0.6}
+\end{table}
+
+La evidencia debe almacenarse en \texttt{tests\_evidence/uat/}, incluyendo capturas del
+login, dashboard, selección del polígono, exportación en proceso, exportación finalizada,
+video generado, ZIP descargado y cierre de sesión.

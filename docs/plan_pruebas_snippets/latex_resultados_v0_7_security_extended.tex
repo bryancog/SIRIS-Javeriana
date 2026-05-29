@@ -1,0 +1,57 @@
+% Fragmento sugerido para documentar la prueba v0.7.
+% Actualizar los estados con el resultado real.
+
+\subsection{Resultados de seguridad funcional ampliada v0.7}
+
+La prueba de seguridad funcional ampliada evaluó controles básicos de autenticación,
+sesión, protección de endpoints, rechazo de entradas inválidas, protección de rutas de
+archivos exportados y verificación local de no almacenamiento de contraseña en texto
+plano. Esta prueba no reemplaza una auditoría de seguridad formal, pero fortalece la
+evidencia funcional del prototipo.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|p{2.3cm}|p{9cm}|p{2.1cm}|}
+\hline
+\textbf{ID} & \textbf{Validación} & \textbf{Estado} \\
+\hline
+SEC-01 & Exportación sin sesión rechazada. & Pendiente \\
+\hline
+SEC-02 & Consulta de estado sin sesión rechazada. & Pendiente \\
+\hline
+SEC-03 & Cancelación sin sesión rechazada. & Pendiente \\
+\hline
+SEC-04 & Sesión anónima no autenticada. & Pendiente \\
+\hline
+SEC-05 & Registro válido de usuario de seguridad. & Pendiente \\
+\hline
+SEC-06 & Registro duplicado rechazado. & Pendiente \\
+\hline
+SEC-07 & Login con contraseña incorrecta rechazado. & Pendiente \\
+\hline
+SEC-08 & Login válido autentica al usuario. & Pendiente \\
+\hline
+SEC-09 & Cookie de sesión incluye \texttt{HttpOnly} y \texttt{SameSite}. & Pendiente \\
+\hline
+SEC-10 & Sesión autenticada devuelve el usuario correcto. & Pendiente \\
+\hline
+SEC-11 & Exportación con fechas inválidas rechazada. & Pendiente \\
+\hline
+SEC-12 & Exportación con polígono inválido rechazada. & Pendiente \\
+\hline
+SEC-13 & Exportación con payload incompleto rechazada. & Pendiente \\
+\hline
+SEC-14 & Intentos de path traversal en \texttt{/exports} no exponen archivos sensibles. & Pendiente \\
+\hline
+SEC-15 & Archivo exportado inexistente retorna error controlado. & Pendiente \\
+\hline
+SEC-16 & Logout invalida la sesión. & Pendiente \\
+\hline
+SEC-17 & Contraseña no almacenada en texto plano en SQLite. & Pendiente \\
+\hline
+\end{tabular}
+\caption{Resultados de seguridad funcional ampliada v0.7}
+\end{table}
+
+La evidencia se almacena en \texttt{tests\_evidence/security/}, incluyendo el log de
+consola y el reporte JSON generado por el script.

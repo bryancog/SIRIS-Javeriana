@@ -1,0 +1,37 @@
+% Fragmento sugerido para documentar la prueba v0.5.
+% Actualizar los valores con los resultados reales.
+
+\subsection{Resultados de prueba de carga moderada v0.5}
+
+La quinta ejecución automatizada se enfocó en evaluar el comportamiento del backend
+ante concurrencia moderada sobre endpoints funcionales no destructivos. La prueba no
+ejecutó exportaciones pesadas; se limitó a registro, autenticación, consulta de sesión,
+carga de página, consulta del área de estudio y consulta de estado de exportación.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|p{4.5cm}|p{4cm}|p{4cm}|}
+\hline
+\textbf{Métrica} & \textbf{Resultado} & \textbf{Criterio} \\
+\hline
+Usuarios concurrentes & Pendiente & 10 \\
+\hline
+Solicitudes por usuario & Pendiente & 20 \\
+\hline
+Total de solicitudes funcionales & Pendiente & 200 \\
+\hline
+Tasa de éxito & Pendiente & $\geq$ 95\% \\
+\hline
+Solicitudes fallidas & Pendiente & 0 \\
+\hline
+Latencia p95 & Pendiente & $\leq$ 2000 ms \\
+\hline
+Resultado general & Pendiente & Aprobado/Fallido \\
+\hline
+\end{tabular}
+\caption{Resumen de prueba de carga moderada v0.5}
+\end{table}
+
+Los endpoints evaluados fueron \texttt{/}, \texttt{/api/session}, \texttt{/api/study-area}
+y \texttt{/api/area/geotiff-status}, usando sesiones autenticadas por cada usuario virtual.
+La evidencia se almacena en \texttt{tests\_evidence/load/}.

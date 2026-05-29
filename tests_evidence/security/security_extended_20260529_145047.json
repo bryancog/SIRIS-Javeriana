@@ -1,0 +1,500 @@
+{
+  "test_id": "SEC-EXT-v0.7.1",
+  "started_at": "2026-05-29 14:50:47",
+  "base_url": "http://127.0.0.1:3000",
+  "project_root": "D:\\SIRIS",
+  "results": [
+    {
+      "id": "SEC-01",
+      "description": "Exportación sin sesión debe ser rechazada",
+      "ok": true,
+      "details": {
+        "url": "http://127.0.0.1:3000/api/area/export",
+        "status_code": 401,
+        "headers": {
+          "date": "Fri, 29 May 2026 19:50:47 GMT",
+          "server": "uvicorn",
+          "content-length": "37",
+          "content-type": "application/json"
+        },
+        "payload": {
+          "message": "Sesión no autenticada."
+        },
+        "elapsed_ms": 4.27,
+        "error": null
+      }
+    },
+    {
+      "id": "SEC-02",
+      "description": "Consulta de estado sin sesión debe ser rechazada",
+      "ok": true,
+      "details": {
+        "url": "http://127.0.0.1:3000/api/area/geotiff-status",
+        "status_code": 401,
+        "headers": {
+          "date": "Fri, 29 May 2026 19:50:47 GMT",
+          "server": "uvicorn",
+          "content-length": "37",
+          "content-type": "application/json"
+        },
+        "payload": {
+          "message": "Sesión no autenticada."
+        },
+        "elapsed_ms": 1.41,
+        "error": null
+      }
+    },
+    {
+      "id": "SEC-03",
+      "description": "Cancelación sin sesión debe ser rechazada",
+      "ok": true,
+      "details": {
+        "url": "http://127.0.0.1:3000/api/area/cancel",
+        "status_code": 401,
+        "headers": {
+          "date": "Fri, 29 May 2026 19:50:47 GMT",
+          "server": "uvicorn",
+          "content-length": "37",
+          "content-type": "application/json"
+        },
+        "payload": {
+          "message": "Sesión no autenticada."
+        },
+        "elapsed_ms": 0.96,
+        "error": null
+      }
+    },
+    {
+      "id": "SEC-04",
+      "description": "Sesión anónima no debe quedar autenticada",
+      "ok": true,
+      "details": {
+        "url": "http://127.0.0.1:3000/api/session",
+        "status_code": 200,
+        "headers": {
+          "date": "Fri, 29 May 2026 19:50:47 GMT",
+          "server": "uvicorn",
+          "content-length": "35",
+          "content-type": "application/json"
+        },
+        "payload": {
+          "authenticated": false,
+          "user": null
+        },
+        "elapsed_ms": 1.47,
+        "error": null
+      }
+    },
+    {
+      "id": "SEC-05",
+      "description": "Registro válido de usuario de seguridad",
+      "ok": true,
+      "details": {
+        "url": "http://127.0.0.1:3000/api/register",
+        "status_code": 200,
+        "headers": {
+          "date": "Fri, 29 May 2026 19:50:47 GMT",
+          "server": "uvicorn",
+          "content-length": "124",
+          "content-type": "application/json"
+        },
+        "payload": {
+          "message": "Usuario registrado correctamente.",
+          "user": {
+            "username": "siris_sec_1780084247_58e151",
+            "name": "Usuario Seguridad"
+          }
+        },
+        "elapsed_ms": 126.44,
+        "error": null
+      }
+    },
+    {
+      "id": "SEC-06",
+      "description": "Registro duplicado debe ser rechazado",
+      "ok": true,
+      "details": {
+        "url": "http://127.0.0.1:3000/api/register",
+        "status_code": 409,
+        "headers": {
+          "date": "Fri, 29 May 2026 19:50:47 GMT",
+          "server": "uvicorn",
+          "content-length": "35",
+          "content-type": "application/json"
+        },
+        "payload": {
+          "message": "El usuario ya existe."
+        },
+        "elapsed_ms": 17.25,
+        "error": null
+      }
+    },
+    {
+      "id": "SEC-07",
+      "description": "Login con contraseña incorrecta debe ser rechazado",
+      "ok": true,
+      "details": {
+        "url": "http://127.0.0.1:3000/api/login",
+        "status_code": 401,
+        "headers": {
+          "date": "Fri, 29 May 2026 19:50:47 GMT",
+          "server": "uvicorn",
+          "content-length": "47",
+          "content-type": "application/json"
+        },
+        "payload": {
+          "message": "Usuario o contrasena incorrectos."
+        },
+        "elapsed_ms": 54.05,
+        "error": null
+      }
+    },
+    {
+      "id": "SEC-08",
+      "description": "Login válido debe autenticar al usuario",
+      "ok": true,
+      "details": {
+        "url": "http://127.0.0.1:3000/api/login",
+        "status_code": 200,
+        "headers": {
+          "date": "Fri, 29 May 2026 19:50:47 GMT",
+          "server": "uvicorn",
+          "content-length": "106",
+          "content-type": "application/json",
+          "set-cookie": "siris_session=4414b434d2e05bd27d14f4c5141d9d67b6e5cb30ed590f6a; HttpOnly; Path=/; SameSite=lax"
+        },
+        "payload": {
+          "message": "Login correcto.",
+          "user": {
+            "username": "siris_sec_1780084247_58e151",
+            "name": "Usuario Seguridad"
+          }
+        },
+        "elapsed_ms": 42.56,
+        "error": null
+      }
+    },
+    {
+      "id": "SEC-09",
+      "description": "Cookie de sesión debe incluir HttpOnly y SameSite",
+      "ok": true,
+      "details": {
+        "set_cookie": "siris_session=4414b434d2e05bd27d14f4c5141d9d67b6e5cb30ed590f6a; HttpOnly; Path=/; SameSite=lax",
+        "has_httponly": true,
+        "has_samesite": true,
+        "has_session_cookie": true,
+        "has_secure": false
+      }
+    },
+    {
+      "id": "SEC-10",
+      "description": "Sesión autenticada debe devolver usuario correcto",
+      "ok": true,
+      "details": {
+        "url": "http://127.0.0.1:3000/api/session",
+        "status_code": 200,
+        "headers": {
+          "date": "Fri, 29 May 2026 19:50:47 GMT",
+          "server": "uvicorn",
+          "content-length": "99",
+          "content-type": "application/json"
+        },
+        "payload": {
+          "authenticated": true,
+          "user": {
+            "username": "siris_sec_1780084247_58e151",
+            "name": "Usuario Seguridad"
+          }
+        },
+        "elapsed_ms": 1.48,
+        "error": null
+      }
+    },
+    {
+      "id": "SEC-11",
+      "description": "Exportación autenticada con fechas inválidas debe ser rechazada",
+      "ok": true,
+      "details": {
+        "url": "http://127.0.0.1:3000/api/area/export",
+        "status_code": 400,
+        "headers": {
+          "date": "Fri, 29 May 2026 19:50:47 GMT",
+          "server": "uvicorn",
+          "content-length": "69",
+          "content-type": "application/json"
+        },
+        "payload": {
+          "message": "La fecha inicial no puede ser mayor que la fecha final."
+        },
+        "elapsed_ms": 1.31,
+        "error": null
+      }
+    },
+    {
+      "id": "SEC-12",
+      "description": "Exportación autenticada con polígono menor de tres puntos debe ser rechazada",
+      "ok": true,
+      "details": {
+        "url": "http://127.0.0.1:3000/api/area/export",
+        "status_code": 400,
+        "headers": {
+          "date": "Fri, 29 May 2026 19:50:47 GMT",
+          "server": "uvicorn",
+          "content-length": "37",
+          "content-type": "application/json"
+        },
+        "payload": {
+          "message": "Parámetros inválidos."
+        },
+        "elapsed_ms": 1.22,
+        "error": null
+      }
+    },
+    {
+      "id": "SEC-13",
+      "description": "Exportación con payload incompleto debe ser rechazada",
+      "ok": true,
+      "details": {
+        "url": "http://127.0.0.1:3000/api/area/export",
+        "status_code": 400,
+        "headers": {
+          "date": "Fri, 29 May 2026 19:50:47 GMT",
+          "server": "uvicorn",
+          "content-length": "37",
+          "content-type": "application/json"
+        },
+        "payload": {
+          "message": "Parámetros inválidos."
+        },
+        "elapsed_ms": 1.19,
+        "error": null
+      }
+    },
+    {
+      "id": "SEC-14",
+      "description": "Intentos de path traversal en /exports no deben exponer archivos sensibles",
+      "ok": true,
+      "details": {
+        "attempts": [
+          {
+            "url": "http://127.0.0.1:3000/exports/%2E%2E/data/siris.db",
+            "status_code": 403,
+            "headers": {
+              "date": "Fri, 29 May 2026 19:50:47 GMT",
+              "server": "uvicorn",
+              "content-length": "29",
+              "content-type": "application/json"
+            },
+            "content_type": "application/json",
+            "content_disposition": "",
+            "body_prefix_hex": "7b2264657461696c223a2241636365736f2064656e656761646f2e227d",
+            "body_sample": "{\"detail\":\"Acceso denegado.\"}",
+            "elapsed_ms": 1.48,
+            "error": null,
+            "safe_evaluation": true
+          },
+          {
+            "url": "http://127.0.0.1:3000/exports/%2e%2e%2fdata%2fsiris.db",
+            "status_code": 403,
+            "headers": {
+              "date": "Fri, 29 May 2026 19:50:47 GMT",
+              "server": "uvicorn",
+              "content-length": "29",
+              "content-type": "application/json"
+            },
+            "content_type": "application/json",
+            "content_disposition": "",
+            "body_prefix_hex": "7b2264657461696c223a2241636365736f2064656e656761646f2e227d",
+            "body_sample": "{\"detail\":\"Acceso denegado.\"}",
+            "elapsed_ms": 1.33,
+            "error": null,
+            "safe_evaluation": true
+          },
+          {
+            "url": "http://127.0.0.1:3000/exports/..%2fdata%2fsiris.db",
+            "status_code": 403,
+            "headers": {
+              "date": "Fri, 29 May 2026 19:50:47 GMT",
+              "server": "uvicorn",
+              "content-length": "29",
+              "content-type": "application/json"
+            },
+            "content_type": "application/json",
+            "content_disposition": "",
+            "body_prefix_hex": "7b2264657461696c223a2241636365736f2064656e656761646f2e227d",
+            "body_sample": "{\"detail\":\"Acceso denegado.\"}",
+            "elapsed_ms": 1.4,
+            "error": null,
+            "safe_evaluation": true
+          },
+          {
+            "url": "http://127.0.0.1:3000/exports/%2E%2E%5Cdata%5Csiris.db",
+            "status_code": 403,
+            "headers": {
+              "date": "Fri, 29 May 2026 19:50:47 GMT",
+              "server": "uvicorn",
+              "content-length": "29",
+              "content-type": "application/json"
+            },
+            "content_type": "application/json",
+            "content_disposition": "",
+            "body_prefix_hex": "7b2264657461696c223a2241636365736f2064656e656761646f2e227d",
+            "body_sample": "{\"detail\":\"Acceso denegado.\"}",
+            "elapsed_ms": 2.18,
+            "error": null,
+            "safe_evaluation": true
+          },
+          {
+            "url": "http://127.0.0.1:3000/exports/%252e%252e%252fdata%252fsiris.db",
+            "status_code": 404,
+            "headers": {
+              "date": "Fri, 29 May 2026 19:50:47 GMT",
+              "server": "uvicorn",
+              "content-length": "22",
+              "content-type": "text/plain; charset=utf-8"
+            },
+            "content_type": "text/plain; charset=utf-8",
+            "content_disposition": "",
+            "body_prefix_hex": "4172636869766f206e6f20656e636f6e747261646f2e",
+            "body_sample": "Archivo no encontrado.",
+            "elapsed_ms": 1.55,
+            "error": null,
+            "safe_evaluation": true
+          },
+          {
+            "url": "http://127.0.0.1:3000/exports/%2E%2E/backend/data/siris.db",
+            "status_code": 403,
+            "headers": {
+              "date": "Fri, 29 May 2026 19:50:47 GMT",
+              "server": "uvicorn",
+              "content-length": "29",
+              "content-type": "application/json"
+            },
+            "content_type": "application/json",
+            "content_disposition": "",
+            "body_prefix_hex": "7b2264657461696c223a2241636365736f2064656e656761646f2e227d",
+            "body_sample": "{\"detail\":\"Acceso denegado.\"}",
+            "elapsed_ms": 1.4,
+            "error": null,
+            "safe_evaluation": true
+          },
+          {
+            "url": "http://127.0.0.1:3000/exports/%2E%2E/%2E%2E/backend/data/siris.db",
+            "status_code": 403,
+            "headers": {
+              "date": "Fri, 29 May 2026 19:50:47 GMT",
+              "server": "uvicorn",
+              "content-length": "29",
+              "content-type": "application/json"
+            },
+            "content_type": "application/json",
+            "content_disposition": "",
+            "body_prefix_hex": "7b2264657461696c223a2241636365736f2064656e656761646f2e227d",
+            "body_sample": "{\"detail\":\"Acceso denegado.\"}",
+            "elapsed_ms": 1.59,
+            "error": null,
+            "safe_evaluation": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "SEC-15",
+      "description": "Archivo exportado inexistente debe retornar 404 o error controlado",
+      "ok": true,
+      "details": {
+        "url": "http://127.0.0.1:3000/exports/area_no_existe/archivo_no_existe.zip",
+        "status_code": 404,
+        "headers": {
+          "date": "Fri, 29 May 2026 19:50:47 GMT",
+          "server": "uvicorn",
+          "content-length": "22",
+          "content-type": "text/plain; charset=utf-8"
+        },
+        "content_type": "text/plain; charset=utf-8",
+        "content_disposition": "",
+        "body_prefix_hex": "4172636869766f206e6f20656e636f6e747261646f2e",
+        "body_sample": "Archivo no encontrado.",
+        "elapsed_ms": 1.61,
+        "error": null
+      }
+    },
+    {
+      "id": "SEC-16",
+      "description": "Después de logout la sesión no debe seguir autenticada",
+      "ok": true,
+      "details": {
+        "logout": {
+          "url": "http://127.0.0.1:3000/api/logout",
+          "status_code": 200,
+          "headers": {
+            "date": "Fri, 29 May 2026 19:50:47 GMT",
+            "server": "uvicorn",
+            "content-length": "29",
+            "content-type": "application/json",
+            "set-cookie": "siris_session=\"\"; expires=Fri, 29 May 2026 19:50:48 GMT; Max-Age=0; Path=/; SameSite=lax"
+          },
+          "payload": {
+            "message": "Sesion cerrada."
+          },
+          "elapsed_ms": 1.03,
+          "error": null
+        },
+        "after_logout": {
+          "url": "http://127.0.0.1:3000/api/session",
+          "status_code": 200,
+          "headers": {
+            "date": "Fri, 29 May 2026 19:50:47 GMT",
+            "server": "uvicorn",
+            "content-length": "35",
+            "content-type": "application/json"
+          },
+          "payload": {
+            "authenticated": false,
+            "user": null
+          },
+          "elapsed_ms": 0.89,
+          "error": null
+        }
+      }
+    },
+    {
+      "id": "SEC-17",
+      "description": "La contraseña no debe almacenarse en texto plano en SQLite",
+      "ok": true,
+      "details": {
+        "db_path": "D:\\SIRIS\\backend\\data\\siris.db",
+        "exists": true,
+        "checked": true,
+        "found_username": true,
+        "plain_password_found": false,
+        "matching_tables": [
+          {
+            "table": "users",
+            "columns": [
+              "id",
+              "username",
+              "name",
+              "password_hash",
+              "salt",
+              "is_active",
+              "created_at"
+            ],
+            "password_like_columns": [
+              "password_hash",
+              "salt"
+            ]
+          }
+        ],
+        "error": null
+      }
+    }
+  ],
+  "ok": true,
+  "finished_at": "2026-05-29 14:50:48",
+  "summary": {
+    "total": 17,
+    "approved": 17,
+    "failed": 0
+  }
+}
