@@ -16,6 +16,9 @@ backend/data/**/*.png
 backend/data/**/*.npy
 backend/data/**/*.tif
 backend/data/**/*.tiff
+backend/data/*.db
+backend/data/*.sqlite
+backend/data/*.sqlite3
 
 __pycache__/
 *.pyc

@@ -12,6 +12,7 @@ FRONTEND_ROOT = PROJECT_ROOT / "frontend"
 DATA_ROOT = BACKEND_ROOT / "data"
 EXPORTS_ROOT = DATA_ROOT / "area_exports"
 WEB_EXPORTS_ROOT = DATA_ROOT / "web_exports"
+DB_PATH = DATA_ROOT / "siris.db"
 
 EXPORTS_ROOT.mkdir(parents=True, exist_ok=True)
 

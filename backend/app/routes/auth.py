@@ -5,8 +5,9 @@ from typing import Optional
 from fastapi import APIRouter, Cookie, Response
 from fastapi.responses import JSONResponse
 
-from app.config import SESSION_COOKIE, TEST_USER
+from app.config import SESSION_COOKIE
 from app.schemas import LoginRequest
+from app.db import get_user_by_username, verify_password
 
 
 router = APIRouter()
@@ -36,7 +37,27 @@ def api_session(siris_session: Optional[str] = Cookie(default=None)):
 
 @router.post("/api/login")
 def api_login(payload: LoginRequest, response: Response):
-    if payload.username != TEST_USER["username"] or payload.password != TEST_USER["password"]:
+    user = get_user_by_username(payload.username)
+
+    if not user:
+        return JSONResponse(
+            status_code=401,
+            content={"message": "Usuario o contrasena incorrectos."}
+        )
+
+    if not user["is_active"]:
+        return JSONResponse(
+            status_code=403,
+            content={"message": "Usuario inactivo."}
+        )
+
+    is_valid_password = verify_password(
+        password=payload.password,
+        salt=user["salt"],
+        expected_hash=user["password_hash"]
+    )
+
+    if not is_valid_password:
         return JSONResponse(
             status_code=401,
             content={"message": "Usuario o contrasena incorrectos."}
@@ -45,8 +66,8 @@ def api_login(payload: LoginRequest, response: Response):
     token = secrets.token_hex(24)
 
     sessions[token] = {
-        "username": TEST_USER["username"],
-        "name": TEST_USER["name"],
+        "username": user["username"],
+        "name": user["name"],
         "createdAt": time.time()
     }
 
@@ -61,8 +82,8 @@ def api_login(payload: LoginRequest, response: Response):
     return {
         "message": "Login correcto.",
         "user": {
-            "username": TEST_USER["username"],
-            "name": TEST_USER["name"]
+            "username": user["username"],
+            "name": user["name"]
         }
     }
 

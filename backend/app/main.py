@@ -7,11 +7,20 @@ from app.config import FRONTEND_ROOT, DATA_ROOT, safe_file_path
 from app.routes import auth, area, exports
 from app.routes.auth import get_session
 
+from contextlib import asynccontextmanager
+from app.db import init_db, ensure_demo_user
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    init_db()
+    ensure_demo_user()
+    yield
 
 app = FastAPI(
     title="SIRIS API",
     description="API para dashboard satelital SIRIS",
-    version="1.0.0"
+    version="1.0.0",
+    lifespan=lifespan
 )
 
 app.include_router(auth.router, tags=["Autenticación"])
