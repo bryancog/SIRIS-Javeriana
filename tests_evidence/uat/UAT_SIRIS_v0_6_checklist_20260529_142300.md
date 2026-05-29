@@ -117,11 +117,10 @@ Escribir aquí comentarios sobre facilidad de uso, claridad de instrucciones, ti
 
 Marcar una opción:
 
-- [ ] El sistema es aceptado para el alcance académico del prototipo.
+- [x] El sistema es aceptado para el alcance académico del prototipo.
 - [ ] El sistema es aceptado con observaciones menores.
 - [ ] El sistema requiere ajustes antes de aceptación.
 
-Firma / nombre del evaluador:
 
 ```txt
 

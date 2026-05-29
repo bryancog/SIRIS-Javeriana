@@ -1,0 +1,414 @@
+{
+  "test_id": "CANCEL-RECOVERY-v0.8",
+  "started_at": "2026-05-29 15:02:12",
+  "base_url": "http://127.0.0.1:3000/",
+  "project_root": "D:\\SIRIS",
+  "cancel_range": {
+    "date_from": "2016-01-01",
+    "date_to": "2026-05-01"
+  },
+  "recovery_range": {
+    "date_from": "2016-01-01",
+    "date_to": "2016-02-01"
+  },
+  "steps": [
+    {
+      "name": "register",
+      "url": "http://127.0.0.1:3000/api/register",
+      "status_code": 200,
+      "payload": {
+        "message": "Usuario registrado correctamente.",
+        "user": {
+          "username": "siris_cancel_1780084932_cdfdc4",
+          "name": "Usuario Cancel Recovery"
+        }
+      },
+      "headers": {
+        "date": "Fri, 29 May 2026 20:02:11 GMT",
+        "server": "uvicorn",
+        "content-length": "133",
+        "content-type": "application/json"
+      },
+      "elapsed_ms": 171.5,
+      "error": null
+    },
+    {
+      "name": "login",
+      "url": "http://127.0.0.1:3000/api/login",
+      "status_code": 200,
+      "payload": {
+        "message": "Login correcto.",
+        "user": {
+          "username": "siris_cancel_1780084932_cdfdc4",
+          "name": "Usuario Cancel Recovery"
+        }
+      },
+      "headers": {
+        "date": "Fri, 29 May 2026 20:02:11 GMT",
+        "server": "uvicorn",
+        "content-length": "115",
+        "content-type": "application/json",
+        "set-cookie": "siris_session=64db68509c04bb5eaac0593f0ae3e323a854214d9f781f31; HttpOnly; Path=/; SameSite=lax"
+      },
+      "elapsed_ms": 48.79,
+      "error": null
+    },
+    {
+      "name": "pre_cancel",
+      "url": "http://127.0.0.1:3000/api/area/cancel",
+      "status_code": 200,
+      "payload": {
+        "message": "Exportación cancelada."
+      },
+      "headers": {
+        "date": "Fri, 29 May 2026 20:02:11 GMT",
+        "server": "uvicorn",
+        "content-length": "37",
+        "content-type": "application/json"
+      },
+      "elapsed_ms": 1.58,
+      "error": null
+    },
+    {
+      "name": "long_export_start",
+      "url": "http://127.0.0.1:3000/api/area/export",
+      "status_code": 202,
+      "payload": {
+        "message": "Exportación iniciada.",
+        "outName": "area_1780084933721",
+        "statusUrl": "/api/area/geotiff-status"
+      },
+      "headers": {
+        "date": "Fri, 29 May 2026 20:02:12 GMT",
+        "server": "uvicorn",
+        "content-length": "106",
+        "content-type": "application/json"
+      },
+      "elapsed_ms": 3.03,
+      "error": null
+    },
+    {
+      "name": "before_cancel_status",
+      "url": "http://127.0.0.1:3000/api/area/geotiff-status",
+      "status_code": 200,
+      "payload": {
+        "running": true,
+        "stage": "video",
+        "message": "Generando video...",
+        "outName": "area_1780084933721",
+        "videoUrl": null,
+        "geotiffZipUrl": null,
+        "error": null
+      },
+      "headers": {
+        "date": "Fri, 29 May 2026 20:02:17 GMT",
+        "server": "uvicorn",
+        "content-length": "144",
+        "content-type": "application/json"
+      },
+      "elapsed_ms": 2.39,
+      "error": null
+    },
+    {
+      "name": "cancel_response",
+      "url": "http://127.0.0.1:3000/api/area/cancel",
+      "status_code": 200,
+      "payload": {
+        "message": "Exportación cancelada."
+      },
+      "headers": {
+        "date": "Fri, 29 May 2026 20:02:17 GMT",
+        "server": "uvicorn",
+        "content-length": "37",
+        "content-type": "application/json"
+      },
+      "elapsed_ms": 6.12,
+      "error": null
+    },
+    {
+      "name": "recovery_export_start",
+      "url": "http://127.0.0.1:3000/api/area/export",
+      "status_code": 202,
+      "payload": {
+        "message": "Exportación iniciada.",
+        "outName": "area_1780084937733",
+        "statusUrl": "/api/area/geotiff-status"
+      },
+      "headers": {
+        "date": "Fri, 29 May 2026 20:02:17 GMT",
+        "server": "uvicorn",
+        "content-length": "106",
+        "content-type": "application/json"
+      },
+      "elapsed_ms": 2.01,
+      "error": null
+    }
+  ],
+  "cancel_status_history": [
+    {
+      "timestamp": "2026-05-29 15:02:17",
+      "status_code": 200,
+      "payload": {
+        "running": false,
+        "stage": "cancelled",
+        "message": "Exportación cancelada.",
+        "outName": null,
+        "videoUrl": null,
+        "geotiffZipUrl": null,
+        "error": null
+      }
+    }
+  ],
+  "recovery_status_history": [
+    {
+      "timestamp": "2026-05-29 15:02:17",
+      "status_code": 200,
+      "payload": {
+        "running": true,
+        "stage": "video",
+        "message": "Generando video...",
+        "outName": "area_1780084937733",
+        "videoUrl": null,
+        "geotiffZipUrl": null,
+        "error": null
+      }
+    },
+    {
+      "timestamp": "2026-05-29 15:02:22",
+      "status_code": 200,
+      "payload": {
+        "running": false,
+        "stage": "done",
+        "message": "Exportación finalizada.",
+        "outName": "area_1780084937733",
+        "videoUrl": "/exports/area_1780084937733/area_1780084937733.mp4",
+        "geotiffZipUrl": "/exports/area_1780084937733/area_1780084937733_geotiff_csv.zip",
+        "error": null
+      }
+    }
+  ],
+  "downloads": [
+    {
+      "label": "video",
+      "url": "http://127.0.0.1:3000/exports/area_1780084937733/area_1780084937733.mp4",
+      "status_code": 200,
+      "content_type": "video/mp4",
+      "content_length": "237570",
+      "first_bytes": 8192,
+      "ok": true
+    },
+    {
+      "label": "zip",
+      "url": "http://127.0.0.1:3000/exports/area_1780084937733/area_1780084937733_geotiff_csv.zip",
+      "status_code": 200,
+      "content_type": "application/x-zip-compressed",
+      "content_length": "23610713",
+      "first_bytes": 8192,
+      "ok": true
+    }
+  ],
+  "checks": [
+    {
+      "id": "CAN-01",
+      "description": "Registro de usuario de prueba",
+      "ok": true,
+      "details": {
+        "url": "http://127.0.0.1:3000/api/register",
+        "status_code": 200,
+        "payload": {
+          "message": "Usuario registrado correctamente.",
+          "user": {
+            "username": "siris_cancel_1780084932_cdfdc4",
+            "name": "Usuario Cancel Recovery"
+          }
+        },
+        "headers": {
+          "date": "Fri, 29 May 2026 20:02:11 GMT",
+          "server": "uvicorn",
+          "content-length": "133",
+          "content-type": "application/json"
+        },
+        "elapsed_ms": 171.5,
+        "error": null
+      }
+    },
+    {
+      "id": "CAN-02",
+      "description": "Login de usuario de prueba",
+      "ok": true,
+      "details": {
+        "url": "http://127.0.0.1:3000/api/login",
+        "status_code": 200,
+        "payload": {
+          "message": "Login correcto.",
+          "user": {
+            "username": "siris_cancel_1780084932_cdfdc4",
+            "name": "Usuario Cancel Recovery"
+          }
+        },
+        "headers": {
+          "date": "Fri, 29 May 2026 20:02:11 GMT",
+          "server": "uvicorn",
+          "content-length": "115",
+          "content-type": "application/json",
+          "set-cookie": "siris_session=64db68509c04bb5eaac0593f0ae3e323a854214d9f781f31; HttpOnly; Path=/; SameSite=lax"
+        },
+        "elapsed_ms": 48.79,
+        "error": null
+      }
+    },
+    {
+      "id": "CAN-03",
+      "description": "Exportación larga inicia con HTTP 202",
+      "ok": true,
+      "details": {
+        "url": "http://127.0.0.1:3000/api/area/export",
+        "status_code": 202,
+        "payload": {
+          "message": "Exportación iniciada.",
+          "outName": "area_1780084933721",
+          "statusUrl": "/api/area/geotiff-status"
+        },
+        "headers": {
+          "date": "Fri, 29 May 2026 20:02:12 GMT",
+          "server": "uvicorn",
+          "content-length": "106",
+          "content-type": "application/json"
+        },
+        "elapsed_ms": 3.03,
+        "error": null
+      }
+    },
+    {
+      "id": "CAN-04",
+      "description": "Endpoint de cancelación responde correctamente",
+      "ok": true,
+      "details": {
+        "url": "http://127.0.0.1:3000/api/area/cancel",
+        "status_code": 200,
+        "payload": {
+          "message": "Exportación cancelada."
+        },
+        "headers": {
+          "date": "Fri, 29 May 2026 20:02:17 GMT",
+          "server": "uvicorn",
+          "content-length": "37",
+          "content-type": "application/json"
+        },
+        "elapsed_ms": 6.12,
+        "error": null
+      }
+    },
+    {
+      "id": "CAN-05",
+      "description": "Estado de exportación queda en cancelled",
+      "ok": true,
+      "details": {
+        "final_cancel_status": {
+          "running": false,
+          "stage": "cancelled",
+          "message": "Exportación cancelada.",
+          "outName": null,
+          "videoUrl": null,
+          "geotiffZipUrl": null,
+          "error": null
+        }
+      }
+    },
+    {
+      "id": "CAN-06",
+      "description": "Directorio de exportación cancelada no queda disponible como producto final",
+      "ok": true,
+      "details": {
+        "cancel_out_name": "area_1780084933721",
+        "cancel_dir": "D:\\SIRIS\\backend\\data\\area_exports\\area_1780084933721",
+        "exists": false
+      }
+    },
+    {
+      "id": "CAN-07",
+      "description": "Después de cancelar, el sistema permite iniciar una nueva exportación",
+      "ok": true,
+      "details": {
+        "url": "http://127.0.0.1:3000/api/area/export",
+        "status_code": 202,
+        "payload": {
+          "message": "Exportación iniciada.",
+          "outName": "area_1780084937733",
+          "statusUrl": "/api/area/geotiff-status"
+        },
+        "headers": {
+          "date": "Fri, 29 May 2026 20:02:17 GMT",
+          "server": "uvicorn",
+          "content-length": "106",
+          "content-type": "application/json"
+        },
+        "elapsed_ms": 2.01,
+        "error": null
+      }
+    },
+    {
+      "id": "CAN-08",
+      "description": "Exportación de recuperación finaliza con stage done",
+      "ok": true,
+      "details": {
+        "final_recovery_status": {
+          "running": false,
+          "stage": "done",
+          "message": "Exportación finalizada.",
+          "outName": "area_1780084937733",
+          "videoUrl": "/exports/area_1780084937733/area_1780084937733.mp4",
+          "geotiffZipUrl": "/exports/area_1780084937733/area_1780084937733_geotiff_csv.zip",
+          "error": null
+        }
+      }
+    },
+    {
+      "id": "CAN-09",
+      "description": "Video de recuperación descargable",
+      "ok": true,
+      "details": {
+        "label": "video",
+        "url": "http://127.0.0.1:3000/exports/area_1780084937733/area_1780084937733.mp4",
+        "status_code": 200,
+        "content_type": "video/mp4",
+        "content_length": "237570",
+        "first_bytes": 8192,
+        "ok": true
+      }
+    },
+    {
+      "id": "CAN-10",
+      "description": "ZIP GeoTIFF/CSV de recuperación descargable",
+      "ok": true,
+      "details": {
+        "label": "zip",
+        "url": "http://127.0.0.1:3000/exports/area_1780084937733/area_1780084937733_geotiff_csv.zip",
+        "status_code": 200,
+        "content_type": "application/x-zip-compressed",
+        "content_length": "23610713",
+        "first_bytes": 8192,
+        "ok": true
+      }
+    },
+    {
+      "id": "CAN-11",
+      "description": "Directorio local de exportación de recuperación existe",
+      "ok": true,
+      "details": {
+        "recovery_out_name": "area_1780084937733",
+        "recovery_dir": "D:\\SIRIS\\backend\\data\\area_exports\\area_1780084937733",
+        "exists": true
+      }
+    }
+  ],
+  "ok": true,
+  "cancel_out_name": "area_1780084933721",
+  "recovery_out_name": "area_1780084937733",
+  "finished_at": "2026-05-29 15:02:22",
+  "summary": {
+    "total": 11,
+    "approved": 11,
+    "failed": 0
+  }
+}

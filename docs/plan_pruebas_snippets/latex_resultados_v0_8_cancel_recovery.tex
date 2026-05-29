@@ -1,0 +1,43 @@
+% Fragmento sugerido para documentar la prueba v0.8.
+% Actualizar estados y valores con el resultado real.
+
+\subsection{Resultados de cancelación y recuperación de exportación asíncrona v0.8}
+
+La prueba de cancelación y recuperación evaluó que el flujo asíncrono de exportación
+permita interrumpir un procesamiento en curso, dejar el sistema en estado controlado
+y ejecutar posteriormente una nueva exportación sin bloqueo operativo.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|p{2.4cm}|p{8.6cm}|p{2.2cm}|}
+\hline
+\textbf{ID} & \textbf{Validación} & \textbf{Estado} \\
+\hline
+CAN-01 & Registro de usuario de prueba. & Pendiente \\
+\hline
+CAN-02 & Login de usuario de prueba. & Pendiente \\
+\hline
+CAN-03 & Exportación larga inicia con HTTP 202. & Pendiente \\
+\hline
+CAN-04 & Endpoint de cancelación responde correctamente. & Pendiente \\
+\hline
+CAN-05 & Estado de exportación queda en \texttt{cancelled}. & Pendiente \\
+\hline
+CAN-06 & Directorio de exportación cancelada no queda disponible como producto final. & Pendiente \\
+\hline
+CAN-07 & Después de cancelar, el sistema permite iniciar una nueva exportación. & Pendiente \\
+\hline
+CAN-08 & Exportación de recuperación finaliza con \texttt{stage=done}. & Pendiente \\
+\hline
+CAN-09 & Video de recuperación descargable. & Pendiente \\
+\hline
+CAN-10 & ZIP GeoTIFF/CSV de recuperación descargable. & Pendiente \\
+\hline
+CAN-11 & Directorio local de exportación de recuperación existe. & Pendiente \\
+\hline
+\end{tabular}
+\caption{Resultados de cancelación y recuperación de exportación asíncrona v0.8}
+\end{table}
+
+La evidencia se almacena en \texttt{tests\_evidence/cancel\_recovery/}, incluyendo
+log de consola y reporte JSON.
