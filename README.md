@@ -4,6 +4,8 @@ SIRIS is a research-oriented geospatial platform for Sentinel-2 satellite image 
 
 The project combines cloud detection, temporal imputation, spatial super-resolution, user authentication and a web dashboard that allows users to select an area of interest, define a date range and generate exportable satellite products.
 
+The current version includes a React + Vite frontend, a FastAPI backend, SQLite-based authentication, asynchronous geospatial export processing and Cloudflare Tunnel deployment support.
+
 ---
 
 ## Main Features
@@ -16,12 +18,15 @@ The project combines cloud detection, temporal imputation, spatial super-resolut
 - GeoTIFF export for the selected polygon.
 - CSV export with imputed pixel information.
 - ZIP download containing GeoTIFF and CSV outputs.
+- Asynchronous export workflow for long-running satellite processing.
+- Export status polling through `/api/area/geotiff-status`.
 - FastAPI backend with automatic API documentation.
 - SQLite-based user authentication and registration.
 - React + Vite frontend.
 - File-based geospatial processing architecture for large satellite outputs.
 - Local development with Vite dev server and FastAPI API proxy.
 - Production/local compiled mode where FastAPI serves the React build from `frontend/dist`.
+- Cloudflare Tunnel deployment support through a single FastAPI service on port `3000`.
 
 ---
 
@@ -54,6 +59,12 @@ SIRIS/
 │  │  ├─ web_exports/
 │  │  └─ area_exports/
 │  │
+│  ├─ tests/
+│  │  ├─ conftest.py
+│  │  ├─ test_auth_api.py
+│  │  └─ test_study_area_and_security_api.py
+│  │
+│  ├─ pytest.ini
 │  ├─ venv/
 │  └─ requirements.txt
 │
@@ -74,9 +85,24 @@ SIRIS/
 │        ├─ Register.jsx
 │        └─ Dashboard.jsx
 │
+├─ scripts_tests/
+│  ├─ run_backend_api_tests.ps1
+│  └─ apply_async_export_patch.ps1
+│
+├─ tests_evidence/
+│  ├─ backend_api/
+│  └─ cloudflare/
+│
+├─ docs/
+│  └─ plan_pruebas_snippets/
+│
 ├─ .gitignore
 └─ README.md
 ```
+
+The active frontend is located in `frontend/`.
+
+If a legacy HTML frontend was kept during migration, it can be removed once the React + Vite frontend has been validated and committed.
 
 ---
 
@@ -92,6 +118,8 @@ SIRIS/
 - Rasterio
 - PyProj
 - Pillow
+- Subprocess-based execution for geospatial scripts
+- Background thread execution for asynchronous exports
 
 ### Frontend
 
@@ -101,7 +129,13 @@ SIRIS/
 - CSS
 - React Router DOM
 - Leaflet
-- Leaflet Draw
+
+### Testing
+
+- pytest
+- FastAPI TestClient
+- Temporary SQLite database for API tests
+- Test evidence logs under `tests_evidence/`
 
 ### Geospatial Processing
 
@@ -111,6 +145,11 @@ SIRIS/
 - GeoTIFF generation.
 - CSV generation for imputed pixels.
 - ZIP packaging for export.
+
+### Deployment
+
+- React build served by FastAPI from `frontend/dist`.
+- Cloudflare Tunnel exposing the backend service on port `3000`.
 
 ---
 
@@ -128,6 +167,8 @@ frontend/dist/
 
 In development, Vite runs the frontend on port `5173` and proxies API requests to the FastAPI backend on port `3000`.
 
+In compiled/deployment mode, Vite is not running. FastAPI serves the compiled React application from `frontend/dist`.
+
 ---
 
 ## Processing Workflow
@@ -140,11 +181,15 @@ The web application follows this workflow:
 4. The user selects a date range.
 5. The user draws a polygon on the Leaflet map.
 6. The frontend sends the polygon and date range to the FastAPI backend.
-7. The backend generates a video from preprocessed image tiles.
-8. The backend generates GeoTIFF outputs from super-resolved NumPy arrays.
-9. The backend generates a CSV with imputed pixel information.
-10. The backend compresses GeoTIFF and CSV outputs into a ZIP file.
-11. The frontend displays the video and provides a download link for the ZIP file.
+7. The backend immediately starts an asynchronous export job.
+8. The backend responds with HTTP `202 Accepted`, including `outName` and `statusUrl`.
+9. The frontend polls `/api/area/geotiff-status`.
+10. The backend generates a video from preprocessed image tiles.
+11. The backend generates GeoTIFF outputs from super-resolved NumPy arrays.
+12. The backend generates a CSV with imputed pixel information.
+13. The backend compresses GeoTIFF and CSV outputs into a ZIP file.
+14. When processing finishes, `/api/area/geotiff-status` returns `stage: "done"` with `videoUrl` and `geotiffZipUrl`.
+15. The frontend displays the video and provides a download link for the ZIP file.
 
 ---
 
@@ -157,7 +202,15 @@ git clone https://github.com/bryancog/SIRIS-Javeriana.git
 cd SIRIS-Javeriana
 ```
 
-### 2. Select the React + Vite migration branch
+### 2. Select the working branch
+
+The current functional version can be used from:
+
+```bash
+git checkout main
+```
+
+If working from a migration branch:
 
 ```bash
 git checkout migracion-react-vite
@@ -191,7 +244,7 @@ Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 If activation is not required, the backend can also be run directly with:
 
 ```powershell
-.\venv\Scripts\python.exe -m uvicorn app.main:app --host 127.0.0.1 --port 3000 --reload
+.\venv\Scripts\python.exe -m uvicorn app.main:app --host 127.0.0.1 --port 3000
 ```
 
 ### 4. Install dependencies
@@ -301,6 +354,8 @@ $env:SIRIS_MASK_ROOT="D:\SIRIS_DATA\tesis_saits_v2_scl_mask\outputs_imputation_m
 $env:SIRIS_GEOTIFF_WORKERS="2"
 ```
 
+`SIRIS_GEOTIFF_WORKERS` controls the number of workers used by the GeoTIFF/CSV generation script.
+
 ---
 
 ## Run the Application in Development Mode
@@ -311,7 +366,15 @@ Development mode uses two terminals.
 
 ```powershell
 cd D:\SIRIS\backend
-.\venv\Scripts\python.exe -m uvicorn app.main:app --host 127.0.0.1 --port 3000 --reload
+
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+.\venv\Scripts\Activate.ps1
+
+$env:SIRIS_NPY_ROOTS="D:\SIRIS_DATA\tesis_saits_v2_scl_mask\outputs_sr_x4_lanczos;D:\SIRIS_DATA\tesis_saits_v2_scl_mask\outputs_sr_x4_lanczos_faltantes_web"
+$env:SIRIS_MASK_ROOT="D:\SIRIS_DATA\tesis_saits_v2_scl_mask\outputs_imputation_masks"
+$env:SIRIS_GEOTIFF_WORKERS="2"
+
+.\venv\Scripts\python.exe -m uvicorn app.main:app --host 127.0.0.1 --port 3000
 ```
 
 Backend URL:
@@ -339,7 +402,7 @@ Frontend URL:
 http://localhost:5173/
 ```
 
-In development, access the system from the Vite URL, not directly from the backend URL.
+In development, access the system from the Vite URL.
 
 ---
 
@@ -362,7 +425,15 @@ Then run the FastAPI backend:
 
 ```powershell
 cd D:\SIRIS\backend
-.\venv\Scripts\python.exe -m uvicorn app.main:app --host 127.0.0.1 --port 3000 --reload
+
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+.\venv\Scripts\Activate.ps1
+
+$env:SIRIS_NPY_ROOTS="D:\SIRIS_DATA\tesis_saits_v2_scl_mask\outputs_sr_x4_lanczos;D:\SIRIS_DATA\tesis_saits_v2_scl_mask\outputs_sr_x4_lanczos_faltantes_web"
+$env:SIRIS_MASK_ROOT="D:\SIRIS_DATA\tesis_saits_v2_scl_mask\outputs_imputation_masks"
+$env:SIRIS_GEOTIFF_WORKERS="2"
+
+.\venv\Scripts\python.exe -m uvicorn app.main:app --host 127.0.0.1 --port 3000
 ```
 
 Open the application from:
@@ -372,6 +443,8 @@ http://127.0.0.1:3000/
 ```
 
 In this mode, FastAPI serves the compiled React application from `frontend/dist`.
+
+This is the recommended mode for Cloudflare Tunnel deployment.
 
 ---
 
@@ -544,7 +617,7 @@ siris_session
 
 ---
 
-## Export Endpoint
+## Asynchronous Export Endpoint
 
 The main export endpoint is:
 
@@ -577,47 +650,106 @@ Expected JSON body:
 
 The polygon can contain three or more vertices.
 
-Example response:
+The endpoint starts the export process in the background and returns immediately.
+
+Expected response:
 
 ```json
 {
-  "message": "Exportacion generada.",
+  "message": "Exportación iniciada.",
   "outName": "area_1780031031689",
-  "videoUrl": "/exports/area_1780031031689/area_1780031031689.mp4",
-  "geotiffZipUrl": "/exports/area_1780031031689/area_1780031031689_geotiff_csv.zip"
+  "statusUrl": "/api/area/geotiff-status"
 }
 ```
 
+Expected HTTP status:
+
+```txt
+202 Accepted
+```
+
+The final URLs are not returned by this endpoint. They are returned later by `/api/area/geotiff-status` when processing finishes.
+
 ---
 
-## Export Status
+## Export Status Endpoint
 
-The frontend can query the export status using:
+The frontend queries the export status using:
 
 ```txt
 GET /api/area/geotiff-status
 ```
 
-Example response:
+Example response while running:
 
 ```json
 {
   "running": true,
   "stage": "geotiff",
   "message": "Generando GeoTIFF...",
-  "outName": "area_1780031031689"
+  "outName": "area_1780031031689",
+  "videoUrl": null,
+  "geotiffZipUrl": null,
+  "error": null
 }
+```
+
+Example response when finished:
+
+```json
+{
+  "running": false,
+  "stage": "done",
+  "message": "Exportación finalizada.",
+  "outName": "area_1780031031689",
+  "videoUrl": "/exports/area_1780031031689/area_1780031031689.mp4",
+  "geotiffZipUrl": "/exports/area_1780031031689/area_1780031031689_geotiff_csv.zip",
+  "error": null
+}
+```
+
+Possible stages include:
+
+```txt
+idle
+queued
+video
+geotiff
+zip
+done
+error
+cancelled
 ```
 
 Possible messages include:
 
 ```txt
+Sin exportación activa.
+Exportación iniciada. Preparando procesamiento...
 Generando video...
 Generando GeoTIFF...
-Comprimiendo ZIP...
+Validando archivos generados...
 Exportación finalizada.
 Error generando exportación.
 Exportación cancelada.
+```
+
+---
+
+## Cancel Export Endpoint
+
+An active export can be cancelled with:
+
+```txt
+POST /api/area/cancel
+```
+
+Expected response:
+
+```json
+{
+  "message": "Exportación cancelada."
+}
 ```
 
 ---
@@ -650,6 +782,153 @@ area_1780031031689_geotiff_csv.zip
 
 ---
 
+## Cloudflare Tunnel Deployment
+
+The recommended deployment path for this version is:
+
+```txt
+React build + FastAPI backend + Cloudflare Tunnel
+```
+
+This means that the frontend is compiled once using Vite and then served by FastAPI. Cloudflare Tunnel points only to the backend service on port `3000`.
+
+### 1. Build the frontend
+
+```powershell
+cd D:\SIRIS\frontend
+npm.cmd run build
+```
+
+### 2. Run the FastAPI backend
+
+```powershell
+cd D:\SIRIS\backend
+
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+.\venv\Scripts\Activate.ps1
+
+$env:SIRIS_NPY_ROOTS="D:\SIRIS_DATA\tesis_saits_v2_scl_mask\outputs_sr_x4_lanczos;D:\SIRIS_DATA\tesis_saits_v2_scl_mask\outputs_sr_x4_lanczos_faltantes_web"
+$env:SIRIS_MASK_ROOT="D:\SIRIS_DATA\tesis_saits_v2_scl_mask\outputs_imputation_masks"
+$env:SIRIS_GEOTIFF_WORKERS="2"
+
+.\venv\Scripts\python.exe -m uvicorn app.main:app --host 127.0.0.1 --port 3000
+```
+
+### 3. Expose the backend through a temporary Cloudflare Tunnel
+
+```powershell
+cloudflared tunnel --url http://localhost:3000
+```
+
+The command returns a public URL similar to:
+
+```txt
+https://example-random-name.trycloudflare.com
+```
+
+Use that URL to access the system publicly.
+
+### 4. Optional named tunnel with domain
+
+For a more stable setup, configure a named Cloudflare Tunnel and route a hostname such as:
+
+```txt
+siris.yourdomain.com
+```
+
+to:
+
+```txt
+http://localhost:3000
+```
+
+---
+
+## Cloudflare Deployment Notes
+
+The asynchronous export workflow was introduced to support Cloudflare Tunnel deployment.
+
+Long-running exports can take several minutes when the date range is wide or the selected polygon requires processing many scenes. Keeping the original HTTP request open until all files are generated can cause a public tunnel or browser connection to close before the backend finishes processing.
+
+The current version avoids that issue by:
+
+1. Returning immediately from `/api/area/export`.
+2. Running the export in the background.
+3. Polling `/api/area/geotiff-status`.
+4. Returning `videoUrl` and `geotiffZipUrl` only when the export is complete.
+
+For deployment evidence, recommended screenshots are:
+
+```txt
+EV_CLOUDFLARE_01_TUNNEL_RUNNING.png
+EV_CLOUDFLARE_02_LOGIN_PUBLICO.png
+EV_CLOUDFLARE_03_DASHBOARD_PUBLICO.png
+EV_CLOUDFLARE_04_EXPORT_ASINCRONA_INICIADA.png
+EV_CLOUDFLARE_05_EXPORT_FINALIZADA_VIDEO_ZIP.png
+```
+
+Recommended folder:
+
+```txt
+tests_evidence/cloudflare/
+```
+
+---
+
+## Automated Tests
+
+The first automated testing package validates Backend/API and basic security behavior.
+
+### Run Backend/API tests
+
+From the project root:
+
+```powershell
+cd D:\SIRIS
+powershell -ExecutionPolicy Bypass -File .\scripts_tests\run_backend_api_tests.ps1
+```
+
+The script runs `pytest` using a temporary SQLite database. It does not modify the functional database at:
+
+```txt
+backend/data/siris.db
+```
+
+### Current automated test coverage
+
+```txt
+API-01 Register user successfully
+API-02 Reject duplicated username
+API-03 Reject invalid registration fields
+API-04 Login successfully and create authenticated session
+API-05 Reject invalid password
+API-06 Session without authentication
+API-07 Logout
+API-08 Study area returns valid GeoJSON
+
+SEC-01 Reject area export without session
+SEC-02 Reject export status query without session
+SEC-03 Reject export cancellation without session
+SEC-04 Return 404 for missing exported file
+SEC-05 Reject or safely handle invalid export path
+```
+
+### Evidence
+
+Test logs are generated under:
+
+```txt
+tests_evidence/backend_api/
+```
+
+Example:
+
+```txt
+backend_api_tests_20260529_115322.log
+```
+
+---
+
 ## Git and Large Files
 
 The repository should not include generated or heavy geospatial files.
@@ -674,51 +953,9 @@ __pycache__/
 venv/
 node_modules/
 frontend/dist/
+tests_evidence/
+backups/
 .env
-```
-
----
-
-## Cloudflare Deployment Notes
-
-The recommended deployment path for this version is:
-
-```txt
-React build + FastAPI backend + Cloudflare Tunnel
-```
-
-Recommended flow:
-
-1. Build the frontend:
-
-```powershell
-cd D:\SIRIS\frontend
-npm.cmd run build
-```
-
-2. Run the FastAPI backend:
-
-```powershell
-cd D:\SIRIS\backend
-.\venv\Scripts\python.exe -m uvicorn app.main:app --host 127.0.0.1 --port 3000
-```
-
-3. Expose the backend through Cloudflare Tunnel:
-
-```powershell
-cloudflared tunnel --url http://localhost:3000
-```
-
-For production, configure a named Cloudflare Tunnel and route a hostname such as:
-
-```txt
-siris.yourdomain.com
-```
-
-to:
-
-```txt
-http://localhost:3000
 ```
 
 ---
@@ -726,6 +963,8 @@ http://localhost:3000
 ## Development Notes
 
 This version migrated the frontend from static HTML/CSS/JavaScript to React with Vite while preserving the FastAPI backend and the existing Python geospatial processing scripts.
+
+It also introduced asynchronous geospatial export processing to improve compatibility with public deployment through Cloudflare Tunnel.
 
 The migration improves:
 
@@ -736,6 +975,8 @@ The migration improves:
 - Improved maintainability for future UI changes.
 - Compatibility with a compiled frontend served by FastAPI.
 - Easier path for Cloudflare Tunnel deployment.
+- Long-running exports without keeping the original HTTP request open.
+- More robust user feedback through export status polling.
 
 The previous FastAPI migration also added:
 
@@ -753,7 +994,13 @@ The previous FastAPI migration also added:
 
 ## Current Branch
 
-The React + Vite frontend migration is being developed in:
+The current functional version is being consolidated in:
+
+```txt
+main
+```
+
+The previous React + Vite migration branch was:
 
 ```txt
 migracion-react-vite
