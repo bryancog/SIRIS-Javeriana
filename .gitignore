@@ -1,27 +1,24 @@
 node_modules/
 
-# Datos pesados/generados
-backend/data/web_exports/
 backend/data/area_exports/
-git pull origin main
-# Archivos geoespaciales pesados
+backend/data/web_exports/
+
 backend/data/*.gpkg
 
-# Permitir el área de estudio si es necesaria para el frontend
 backend/data/*.geojson
 !backend/data/study_area.geojson
 
-# Imágenes, videos y zips generados dentro de backend/data
 backend/data/**/*.zip
 backend/data/**/*.mp4
 backend/data/**/*.jpg
 backend/data/**/*.jpeg
 backend/data/**/*.png
 backend/data/**/*.npy
+backend/data/**/*.tif
+backend/data/**/*.tiff
 
-# Python
 __pycache__/
 *.pyc
-
-# Entorno
+.venv/
+venv/
 .env
