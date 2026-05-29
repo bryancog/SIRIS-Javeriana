@@ -1,0 +1,40 @@
+% Fragmento sugerido para documentar la prueba v0.3.
+% Actualizar los valores reales después de la ejecución.
+
+\subsection{Resultados de validación geoespacial local v0.3}
+
+La tercera ejecución automatizada se enfocó en verificar técnicamente los productos
+geoespaciales generados por el sistema después de una exportación. La prueba validó
+la carpeta de salida, el archivo \texttt{polygon.json}, el video MP4, el archivo ZIP,
+los GeoTIFF generados y el CSV de píxeles imputados.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|p{2.4cm}|p{8.4cm}|p{2.3cm}|}
+\hline
+\textbf{ID} & \textbf{Validación} & \textbf{Estado} \\
+\hline
+GEO-00 & Directorio general de exportaciones disponible. & Pendiente \\
+\hline
+GEO-01 & Directorio específico de exportación disponible. & Pendiente \\
+\hline
+GEO-02 & Archivo \texttt{polygon.json} existente y con vértices válidos. & Pendiente \\
+\hline
+GEO-03 & Video MP4 existente y no vacío. & Pendiente \\
+\hline
+GEO-04 & ZIP GeoTIFF/CSV existente, legible y con archivos esperados. & Pendiente \\
+\hline
+GEO-05 & Directorio \texttt{geotiff} existente. & Pendiente \\
+\hline
+GEO-06 & Existencia de archivos GeoTIFF. & Pendiente \\
+\hline
+GEO-07 & Apertura de GeoTIFF con \texttt{rasterio} y metadatos válidos. & Pendiente \\
+\hline
+GEO-08 & CSV existente, legible y con columnas esperadas. & Pendiente \\
+\hline
+\end{tabular}
+\caption{Resultados de validación geoespacial local v0.3}
+\end{table}
+
+La evidencia se almacena en \texttt{tests\_evidence/geospatial/}, incluyendo el log de
+consola y el reporte JSON generado por el script de validación.

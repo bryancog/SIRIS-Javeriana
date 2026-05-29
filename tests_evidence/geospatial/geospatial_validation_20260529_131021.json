@@ -1,0 +1,487 @@
+{
+  "test_id": "GEO-LOCAL-VALIDATION-v0.3.1",
+  "started_at": "20260529_131021",
+  "project_root": "D:\\SIRIS",
+  "exports_root": "D:\\SIRIS\\backend\\data\\area_exports",
+  "out_name_argument": null,
+  "checks": [
+    {
+      "id": "GEO-00",
+      "name": "Directorio de exportaciones existe",
+      "ok": true,
+      "details": {
+        "path": "D:\\SIRIS\\backend\\data\\area_exports"
+      }
+    },
+    {
+      "id": "GEO-01",
+      "name": "Directorio de exportación existe",
+      "ok": true,
+      "details": {
+        "path": "D:\\SIRIS\\backend\\data\\area_exports\\area_1780077928230"
+      }
+    },
+    {
+      "id": "GEO-02",
+      "name": "polygon.json existe y contiene al menos tres vértices válidos",
+      "ok": true,
+      "details": {
+        "path": "D:\\SIRIS\\backend\\data\\area_exports\\area_1780077928230\\polygon.json",
+        "vertices": 4
+      }
+    },
+    {
+      "id": "GEO-03",
+      "name": "Video MP4 existe y no está vacío",
+      "ok": true,
+      "details": {
+        "files": [
+          {
+            "name": "area_1780077928230.mp4",
+            "size_bytes": 1494773
+          }
+        ]
+      }
+    },
+    {
+      "id": "GEO-04",
+      "name": "ZIP GeoTIFF/CSV existe, abre correctamente y contiene TIF/CSV",
+      "ok": true,
+      "details": {
+        "path": "D:\\SIRIS\\backend\\data\\area_exports\\area_1780077928230\\area_1780077928230_geotiff_csv.zip",
+        "exists": true,
+        "size_bytes": 222326979,
+        "can_open": true,
+        "num_entries": 8,
+        "has_tif": true,
+        "has_csv": true,
+        "has_excel": false,
+        "has_readme": true,
+        "sample_entries": [
+          "geotiff/area_20260405.tif",
+          "geotiff/area_20260410.tif",
+          "geotiff/area_20260415.tif",
+          "geotiff/area_20260420.tif",
+          "geotiff/area_20260425.tif",
+          "geotiff/area_20260430.tif",
+          "pixeles_imputados.csv",
+          "README_GEOTIFF_IMPUTACION.txt"
+        ],
+        "bad_file": null,
+        "error": null
+      }
+    },
+    {
+      "id": "GEO-05",
+      "name": "Directorio geotiff existe",
+      "ok": true,
+      "details": {
+        "path": "D:\\SIRIS\\backend\\data\\area_exports\\area_1780077928230\\geotiff"
+      }
+    },
+    {
+      "id": "GEO-06",
+      "name": "Existen archivos GeoTIFF",
+      "ok": true,
+      "details": {
+        "num_geotiffs": 6,
+        "sample": [
+          "area_20260405.tif",
+          "area_20260410.tif",
+          "area_20260415.tif",
+          "area_20260420.tif",
+          "area_20260425.tif",
+          "area_20260430.tif"
+        ]
+      }
+    },
+    {
+      "id": "GEO-07",
+      "name": "GeoTIFF inspeccionados abren con rasterio y tienen metadatos válidos",
+      "ok": true,
+      "details": {
+        "num_inspected": 5,
+        "max_geotiffs": 5
+      }
+    },
+    {
+      "id": "GEO-08",
+      "name": "CSV existe dentro o fuera del ZIP, abre correctamente y tiene estructura tabular",
+      "ok": true,
+      "details": {
+        "location": "filesystem",
+        "path": "D:\\SIRIS\\backend\\data\\area_exports\\area_1780077928230\\pixeles_imputados.csv",
+        "exists": true,
+        "size_bytes": 5889536,
+        "can_open": true,
+        "columns": [
+          "fecha",
+          "tile",
+          "row_raw_global",
+          "col_raw_global",
+          "row_sr0",
+          "col_sr0",
+          "row_sr1_exclusive",
+          "col_sr1_exclusive",
+          "x_center",
+          "y_center",
+          "x_min",
+          "y_min",
+          "x_max",
+          "y_max",
+          "sr_pixels_afectados"
+        ],
+        "sample_rows": [
+          {
+            "fecha": "20260405",
+            "tile": "tile_r00512_c01024",
+            "row_raw_global": "512",
+            "col_raw_global": "1338",
+            "row_sr0": "2048",
+            "col_sr0": "5352",
+            "row_sr1_exclusive": "2052",
+            "col_sr1_exclusive": "5356",
+            "x_center": "241165.0",
+            "y_center": "133905.0",
+            "x_min": "241160.0",
+            "y_min": "133900.0"
+          },
+          {
+            "fecha": "20260405",
+            "tile": "tile_r00512_c01024",
+            "row_raw_global": "512",
+            "col_raw_global": "1339",
+            "row_sr0": "2048",
+            "col_sr0": "5356",
+            "row_sr1_exclusive": "2052",
+            "col_sr1_exclusive": "5360",
+            "x_center": "241175.0",
+            "y_center": "133905.0",
+            "x_min": "241170.0",
+            "y_min": "133900.0"
+          },
+          {
+            "fecha": "20260405",
+            "tile": "tile_r00512_c01024",
+            "row_raw_global": "512",
+            "col_raw_global": "1340",
+            "row_sr0": "2048",
+            "col_sr0": "5360",
+            "row_sr1_exclusive": "2052",
+            "col_sr1_exclusive": "5364",
+            "x_center": "241185.0",
+            "y_center": "133905.0",
+            "x_min": "241180.0",
+            "y_min": "133900.0"
+          },
+          {
+            "fecha": "20260405",
+            "tile": "tile_r00512_c01024",
+            "row_raw_global": "512",
+            "col_raw_global": "1341",
+            "row_sr0": "2048",
+            "col_sr0": "5364",
+            "row_sr1_exclusive": "2052",
+            "col_sr1_exclusive": "5368",
+            "x_center": "241195.0",
+            "y_center": "133905.0",
+            "x_min": "241190.0",
+            "y_min": "133900.0"
+          },
+          {
+            "fecha": "20260405",
+            "tile": "tile_r00512_c01024",
+            "row_raw_global": "512",
+            "col_raw_global": "1342",
+            "row_sr0": "2048",
+            "col_sr0": "5368",
+            "row_sr1_exclusive": "2052",
+            "col_sr1_exclusive": "5372",
+            "x_center": "241205.0",
+            "y_center": "133905.0",
+            "x_min": "241200.0",
+            "y_min": "133900.0"
+          }
+        ],
+        "rows_counted_up_to_limit": 10000,
+        "reached_count_limit": true,
+        "error": null,
+        "source": "D:\\SIRIS\\backend\\data\\area_exports\\area_1780077928230\\pixeles_imputados.csv"
+      }
+    }
+  ],
+  "geotiffs": [
+    {
+      "path": "D:\\SIRIS\\backend\\data\\area_exports\\area_1780077928230\\geotiff\\area_20260405.tif",
+      "exists": true,
+      "size_bytes": 36111100,
+      "can_open": true,
+      "width": 2509,
+      "height": 1476,
+      "count": 4,
+      "crs": "EPSG:32618",
+      "transform": "| 2.50, 0.00, 240980.00|\n| 0.00,-2.50, 137017.50|\n| 0.00, 0.00, 1.00|",
+      "bounds": {
+        "left": 240980.0,
+        "bottom": 133327.5,
+        "right": 247252.5,
+        "top": 137017.5
+      },
+      "dtypes": [
+        "uint16",
+        "uint16",
+        "uint16",
+        "uint16"
+      ],
+      "nodata": 0.0,
+      "has_valid_dimensions": true,
+      "has_valid_crs": true,
+      "has_valid_transform": true,
+      "sample_read_ok": true,
+      "error": null
+    },
+    {
+      "path": "D:\\SIRIS\\backend\\data\\area_exports\\area_1780077928230\\geotiff\\area_20260410.tif",
+      "exists": true,
+      "size_bytes": 36078472,
+      "can_open": true,
+      "width": 2509,
+      "height": 1476,
+      "count": 4,
+      "crs": "EPSG:32618",
+      "transform": "| 2.50, 0.00, 240980.00|\n| 0.00,-2.50, 137017.50|\n| 0.00, 0.00, 1.00|",
+      "bounds": {
+        "left": 240980.0,
+        "bottom": 133327.5,
+        "right": 247252.5,
+        "top": 137017.5
+      },
+      "dtypes": [
+        "uint16",
+        "uint16",
+        "uint16",
+        "uint16"
+      ],
+      "nodata": 0.0,
+      "has_valid_dimensions": true,
+      "has_valid_crs": true,
+      "has_valid_transform": true,
+      "sample_read_ok": true,
+      "error": null
+    },
+    {
+      "path": "D:\\SIRIS\\backend\\data\\area_exports\\area_1780077928230\\geotiff\\area_20260415.tif",
+      "exists": true,
+      "size_bytes": 36052962,
+      "can_open": true,
+      "width": 2509,
+      "height": 1476,
+      "count": 4,
+      "crs": "EPSG:32618",
+      "transform": "| 2.50, 0.00, 240980.00|\n| 0.00,-2.50, 137017.50|\n| 0.00, 0.00, 1.00|",
+      "bounds": {
+        "left": 240980.0,
+        "bottom": 133327.5,
+        "right": 247252.5,
+        "top": 137017.5
+      },
+      "dtypes": [
+        "uint16",
+        "uint16",
+        "uint16",
+        "uint16"
+      ],
+      "nodata": 0.0,
+      "has_valid_dimensions": true,
+      "has_valid_crs": true,
+      "has_valid_transform": true,
+      "sample_read_ok": true,
+      "error": null
+    },
+    {
+      "path": "D:\\SIRIS\\backend\\data\\area_exports\\area_1780077928230\\geotiff\\area_20260420.tif",
+      "exists": true,
+      "size_bytes": 36050305,
+      "can_open": true,
+      "width": 2509,
+      "height": 1476,
+      "count": 4,
+      "crs": "EPSG:32618",
+      "transform": "| 2.50, 0.00, 240980.00|\n| 0.00,-2.50, 137017.50|\n| 0.00, 0.00, 1.00|",
+      "bounds": {
+        "left": 240980.0,
+        "bottom": 133327.5,
+        "right": 247252.5,
+        "top": 137017.5
+      },
+      "dtypes": [
+        "uint16",
+        "uint16",
+        "uint16",
+        "uint16"
+      ],
+      "nodata": 0.0,
+      "has_valid_dimensions": true,
+      "has_valid_crs": true,
+      "has_valid_transform": true,
+      "sample_read_ok": true,
+      "error": null
+    },
+    {
+      "path": "D:\\SIRIS\\backend\\data\\area_exports\\area_1780077928230\\geotiff\\area_20260425.tif",
+      "exists": true,
+      "size_bytes": 36076381,
+      "can_open": true,
+      "width": 2509,
+      "height": 1476,
+      "count": 4,
+      "crs": "EPSG:32618",
+      "transform": "| 2.50, 0.00, 240980.00|\n| 0.00,-2.50, 137017.50|\n| 0.00, 0.00, 1.00|",
+      "bounds": {
+        "left": 240980.0,
+        "bottom": 133327.5,
+        "right": 247252.5,
+        "top": 137017.5
+      },
+      "dtypes": [
+        "uint16",
+        "uint16",
+        "uint16",
+        "uint16"
+      ],
+      "nodata": 0.0,
+      "has_valid_dimensions": true,
+      "has_valid_crs": true,
+      "has_valid_transform": true,
+      "sample_read_ok": true,
+      "error": null
+    }
+  ],
+  "csv": {
+    "location": "filesystem",
+    "path": "D:\\SIRIS\\backend\\data\\area_exports\\area_1780077928230\\pixeles_imputados.csv",
+    "exists": true,
+    "size_bytes": 5889536,
+    "can_open": true,
+    "columns": [
+      "fecha",
+      "tile",
+      "row_raw_global",
+      "col_raw_global",
+      "row_sr0",
+      "col_sr0",
+      "row_sr1_exclusive",
+      "col_sr1_exclusive",
+      "x_center",
+      "y_center",
+      "x_min",
+      "y_min",
+      "x_max",
+      "y_max",
+      "sr_pixels_afectados"
+    ],
+    "sample_rows": [
+      {
+        "fecha": "20260405",
+        "tile": "tile_r00512_c01024",
+        "row_raw_global": "512",
+        "col_raw_global": "1338",
+        "row_sr0": "2048",
+        "col_sr0": "5352",
+        "row_sr1_exclusive": "2052",
+        "col_sr1_exclusive": "5356",
+        "x_center": "241165.0",
+        "y_center": "133905.0",
+        "x_min": "241160.0",
+        "y_min": "133900.0"
+      },
+      {
+        "fecha": "20260405",
+        "tile": "tile_r00512_c01024",
+        "row_raw_global": "512",
+        "col_raw_global": "1339",
+        "row_sr0": "2048",
+        "col_sr0": "5356",
+        "row_sr1_exclusive": "2052",
+        "col_sr1_exclusive": "5360",
+        "x_center": "241175.0",
+        "y_center": "133905.0",
+        "x_min": "241170.0",
+        "y_min": "133900.0"
+      },
+      {
+        "fecha": "20260405",
+        "tile": "tile_r00512_c01024",
+        "row_raw_global": "512",
+        "col_raw_global": "1340",
+        "row_sr0": "2048",
+        "col_sr0": "5360",
+        "row_sr1_exclusive": "2052",
+        "col_sr1_exclusive": "5364",
+        "x_center": "241185.0",
+        "y_center": "133905.0",
+        "x_min": "241180.0",
+        "y_min": "133900.0"
+      },
+      {
+        "fecha": "20260405",
+        "tile": "tile_r00512_c01024",
+        "row_raw_global": "512",
+        "col_raw_global": "1341",
+        "row_sr0": "2048",
+        "col_sr0": "5364",
+        "row_sr1_exclusive": "2052",
+        "col_sr1_exclusive": "5368",
+        "x_center": "241195.0",
+        "y_center": "133905.0",
+        "x_min": "241190.0",
+        "y_min": "133900.0"
+      },
+      {
+        "fecha": "20260405",
+        "tile": "tile_r00512_c01024",
+        "row_raw_global": "512",
+        "col_raw_global": "1342",
+        "row_sr0": "2048",
+        "col_sr0": "5368",
+        "row_sr1_exclusive": "2052",
+        "col_sr1_exclusive": "5372",
+        "x_center": "241205.0",
+        "y_center": "133905.0",
+        "x_min": "241200.0",
+        "y_min": "133900.0"
+      }
+    ],
+    "rows_counted_up_to_limit": 10000,
+    "reached_count_limit": true,
+    "error": null,
+    "source": "D:\\SIRIS\\backend\\data\\area_exports\\area_1780077928230\\pixeles_imputados.csv"
+  },
+  "zip": {
+    "path": "D:\\SIRIS\\backend\\data\\area_exports\\area_1780077928230\\area_1780077928230_geotiff_csv.zip",
+    "exists": true,
+    "size_bytes": 222326979,
+    "can_open": true,
+    "num_entries": 8,
+    "has_tif": true,
+    "has_csv": true,
+    "has_excel": false,
+    "has_readme": true,
+    "sample_entries": [
+      "geotiff/area_20260405.tif",
+      "geotiff/area_20260410.tif",
+      "geotiff/area_20260415.tif",
+      "geotiff/area_20260420.tif",
+      "geotiff/area_20260425.tif",
+      "geotiff/area_20260430.tif",
+      "pixeles_imputados.csv",
+      "README_GEOTIFF_IMPUTACION.txt"
+    ],
+    "bad_file": null,
+    "error": null
+  },
+  "ok": true,
+  "out_name": "area_1780077928230",
+  "export_dir": "D:\\SIRIS\\backend\\data\\area_exports\\area_1780077928230",
+  "finished_at": "20260529_131021"
+}

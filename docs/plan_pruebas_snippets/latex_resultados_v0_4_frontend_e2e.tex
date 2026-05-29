@@ -1,0 +1,39 @@
+% Fragmento sugerido para documentar la prueba v0.4.
+% Actualizar los estados con el resultado real de la ejecución.
+
+\subsection{Resultados de pruebas frontend/E2E con Playwright v0.4}
+
+La cuarta ejecución automatizada se enfocó en validar el flujo visible de usuario desde
+el navegador. Las pruebas fueron ejecutadas con Playwright sobre la aplicación SIRIS,
+validando carga de login, registro de usuario, autenticación, dashboard, mapa Leaflet,
+filtro temporal, activación de la herramienta de polígono y cierre de sesión.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|p{2.5cm}|p{8.3cm}|p{2.3cm}|}
+\hline
+\textbf{ID} & \textbf{Validación} & \textbf{Estado} \\
+\hline
+E2E-01 & Carga de login y visualización de controles principales. & Pendiente \\
+\hline
+E2E-02 & Validación de mensaje ante login incorrecto. & Pendiente \\
+\hline
+E2E-03 & Registro de usuario desde la interfaz web. & Pendiente \\
+\hline
+E2E-04 & Inicio de sesión y acceso al dashboard. & Pendiente \\
+\hline
+E2E-05 & Sesión autenticada verificada desde frontend y API. & Pendiente \\
+\hline
+E2E-06 & Visualización de mapa, filtro temporal y panel de resultados. & Pendiente \\
+\hline
+E2E-07 & Activación de herramienta visual de polígono sin ejecutar exportación. & Pendiente \\
+\hline
+E2E-08 & Cierre de sesión desde la interfaz. & Pendiente \\
+\hline
+\end{tabular}
+\caption{Resultados de pruebas frontend/E2E con Playwright v0.4}
+\end{table}
+
+La evidencia se almacena en \texttt{tests\_evidence/frontend\_e2e/}, incluyendo log de
+consola, reporte JSON de Playwright, reporte HTML y capturas de pantalla de los pasos
+principales.

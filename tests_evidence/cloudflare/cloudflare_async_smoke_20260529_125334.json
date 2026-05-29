@@ -1,0 +1,321 @@
+{
+  "test_id": "SMOKE-CF-ASYNC-01",
+  "base_url": "https://temporary-important-widely-neighbors.trycloudflare.com/",
+  "date_from": "2016-01-01",
+  "date_to": "2016-02-01",
+  "username": "siris_cf_1780077214_02e010",
+  "started_at": "20260529_125334",
+  "steps": [
+    {
+      "name": "home_load",
+      "url": "https://temporary-important-widely-neighbors.trycloudflare.com/",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "name": "register",
+      "url": "https://temporary-important-widely-neighbors.trycloudflare.com/api/register",
+      "status_code": 200,
+      "payload": {
+        "message": "Usuario registrado correctamente.",
+        "user": {
+          "username": "siris_cf_1780077214_02e010",
+          "name": "Usuario Smoke Cloudflare"
+        }
+      },
+      "headers": {
+        "Date": "Fri, 29 May 2026 17:53:36 GMT",
+        "Content-Type": "application/json",
+        "Transfer-Encoding": "chunked",
+        "Connection": "keep-alive",
+        "CF-Ray": "a0375c0aaaf89876-BOG",
+        "CF-Cache-Status": "DYNAMIC",
+        "Server": "cloudflare",
+        "Content-Encoding": "gzip"
+      },
+      "ok": true
+    },
+    {
+      "name": "login",
+      "url": "https://temporary-important-widely-neighbors.trycloudflare.com/api/login",
+      "status_code": 200,
+      "payload": {
+        "message": "Login correcto.",
+        "user": {
+          "username": "siris_cf_1780077214_02e010",
+          "name": "Usuario Smoke Cloudflare"
+        }
+      },
+      "headers": {
+        "Date": "Fri, 29 May 2026 17:53:37 GMT",
+        "Content-Type": "application/json",
+        "Transfer-Encoding": "chunked",
+        "Connection": "keep-alive",
+        "CF-Ray": "a0375c0dea899876-BOG",
+        "CF-Cache-Status": "DYNAMIC",
+        "Server": "cloudflare",
+        "Set-Cookie": "siris_session=861075e0cef04f31d49d7120b795c16c5dc146c337bf7146; HttpOnly; Path=/; SameSite=lax",
+        "Content-Encoding": "gzip"
+      },
+      "ok": true
+    },
+    {
+      "name": "session_authenticated",
+      "url": "https://temporary-important-widely-neighbors.trycloudflare.com/api/session",
+      "status_code": 200,
+      "payload": {
+        "authenticated": true,
+        "user": {
+          "username": "siris_cf_1780077214_02e010",
+          "name": "Usuario Smoke Cloudflare"
+        }
+      },
+      "headers": {
+        "Date": "Fri, 29 May 2026 17:53:37 GMT",
+        "Content-Type": "application/json",
+        "Transfer-Encoding": "chunked",
+        "Connection": "keep-alive",
+        "CF-Ray": "a0375c0f39469876-BOG",
+        "CF-Cache-Status": "DYNAMIC",
+        "Server": "cloudflare",
+        "Content-Encoding": "gzip"
+      },
+      "ok": true
+    },
+    {
+      "name": "study_area",
+      "url": "https://temporary-important-widely-neighbors.trycloudflare.com/api/study-area",
+      "status_code": 200,
+      "payload": {
+        "type": "FeatureCollection",
+        "name": "study_area",
+        "crs": {
+          "type": "name",
+          "properties": {
+            "name": "urn:ogc:def:crs:OGC:1.3:CRS84"
+          }
+        },
+        "features": [
+          {
+            "type": "Feature",
+            "properties": {
+              "MINX": 4505071.537749539,
+              "MINY": 1672243.8878421271,
+              "MAXX": 4544748.898229036,
+              "MAXY": 1697278.4129065713,
+              "CNTX": 4524910.217989287,
+              "CNTY": 1684761.1503743492,
+              "AREA": 989.3476929794648,
+              "PERIM": 129423.77108788118,
+              "HEIGHT": 25034.52506444417,
+              "WIDTH": 39677.36047949642
+            },
+            "geometry": {
+              "type": "Polygon",
+              "coordinates": [
+                [
+                  [
+                    -77.44579734062502,
+                    1.030434440949482
+                  ],
+                  [
+                    -77.09002342977422,
+                    1.030915181033961
+                  ],
+                  [
+                    -77.09034398595865,
+                    1.256919145653611
+                  ],
+                  [
+                    -77.44614556548625,
+                    1.256332985062394
+                  ],
+                  [
+                    -77.44579734062502,
+                    1.030434440949482
+                  ]
+                ]
+              ]
+            }
+          }
+        ]
+      },
+      "headers": {
+        "Date": "Fri, 29 May 2026 17:53:39 GMT",
+        "Content-Type": "application/json",
+        "Transfer-Encoding": "chunked",
+        "Connection": "keep-alive",
+        "CF-Ray": "a0375c11de619876-BOG",
+        "CF-Cache-Status": "DYNAMIC",
+        "Server": "cloudflare",
+        "Last-Modified": "Wed, 27 May 2026 22:24:20 GMT",
+        "ETag": "W/\"b06870bb7140567e14e0215e4c050c81\"",
+        "Content-Encoding": "gzip"
+      },
+      "ok": true
+    },
+    {
+      "name": "export_start",
+      "url": "https://temporary-important-widely-neighbors.trycloudflare.com/api/area/export",
+      "status_code": 202,
+      "payload": {
+        "message": "Exportación iniciada.",
+        "outName": "area_1780077220795",
+        "statusUrl": "/api/area/geotiff-status"
+      },
+      "headers": {
+        "Date": "Fri, 29 May 2026 17:53:39 GMT",
+        "Content-Type": "application/json",
+        "Content-Length": "106",
+        "Connection": "keep-alive",
+        "CF-Ray": "a0375c2078ed9876-BOG",
+        "CF-Cache-Status": "DYNAMIC",
+        "Server": "cloudflare"
+      },
+      "ok": true
+    }
+  ],
+  "status_history": [
+    {
+      "timestamp": "2026-05-29 12:53:41",
+      "status_code": 200,
+      "payload": {
+        "running": true,
+        "stage": "video",
+        "message": "Generando video...",
+        "outName": "area_1780077220795",
+        "videoUrl": null,
+        "geotiffZipUrl": null,
+        "error": null
+      }
+    },
+    {
+      "timestamp": "2026-05-29 12:53:46",
+      "status_code": 200,
+      "payload": {
+        "running": false,
+        "stage": "done",
+        "message": "Exportación finalizada.",
+        "outName": "area_1780077220795",
+        "videoUrl": "/exports/area_1780077220795/area_1780077220795.mp4",
+        "geotiffZipUrl": "/exports/area_1780077220795/area_1780077220795_geotiff_csv.zip",
+        "error": null
+      }
+    }
+  ],
+  "downloads": [
+    {
+      "label": "video",
+      "url": "https://temporary-important-widely-neighbors.trycloudflare.com/exports/area_1780077220795/area_1780077220795.mp4",
+      "status_code": 200,
+      "content_type": "video/mp4",
+      "content_length": "237505",
+      "first_bytes": 8192,
+      "ok": true
+    },
+    {
+      "label": "zip",
+      "url": "https://temporary-important-widely-neighbors.trycloudflare.com/exports/area_1780077220795/area_1780077220795_geotiff_csv.zip",
+      "status_code": 200,
+      "content_type": "application/x-zip-compressed",
+      "content_length": "23610713",
+      "first_bytes": 8192,
+      "ok": true
+    }
+  ],
+  "local_outputs": {
+    "enabled": true,
+    "ok": true,
+    "checks": [
+      {
+        "name": "export_dir_exists",
+        "ok": true,
+        "details": {}
+      },
+      {
+        "name": "polygon_json_exists",
+        "ok": true,
+        "details": {}
+      },
+      {
+        "name": "mp4_exists_and_non_empty",
+        "ok": true,
+        "details": {
+          "files": [
+            "area_1780077220795.mp4"
+          ],
+          "size_bytes": 237505
+        }
+      },
+      {
+        "name": "zip_exists_and_non_empty",
+        "ok": true,
+        "details": {
+          "files": [
+            "area_1780077220795_geotiff_csv.zip"
+          ],
+          "size_bytes": 23610713
+        }
+      },
+      {
+        "name": "geotiff_dir_exists",
+        "ok": true,
+        "details": {}
+      },
+      {
+        "name": "zip_contains_expected_files",
+        "ok": true,
+        "details": {
+          "num_files": 5,
+          "sample": [
+            "geotiff/area_20160103.tif",
+            "geotiff/area_20160113.tif",
+            "geotiff/area_20160123.tif",
+            "pixeles_imputados.csv",
+            "README_GEOTIFF_IMPUTACION.txt"
+          ],
+          "has_tif": true,
+          "has_csv": true,
+          "has_readme": true
+        }
+      },
+      {
+        "name": "geotiff_files_exist",
+        "ok": true,
+        "details": {
+          "num_tif": 3
+        }
+      },
+      {
+        "name": "first_geotiff_can_be_opened_with_rasterio",
+        "ok": true,
+        "details": {
+          "file": "area_20160103.tif",
+          "width": 893,
+          "height": 887,
+          "count": 4,
+          "crs": "EPSG:32618",
+          "dtype": "uint16"
+        }
+      },
+      {
+        "name": "first_geotiff_has_valid_dimensions",
+        "ok": true,
+        "details": {}
+      }
+    ],
+    "export_dir": "D:\\SIRIS\\backend\\data\\area_exports\\area_1780077220795"
+  },
+  "ok": true,
+  "out_name": "area_1780077220795",
+  "final_status": {
+    "running": false,
+    "stage": "done",
+    "message": "Exportación finalizada.",
+    "outName": "area_1780077220795",
+    "videoUrl": "/exports/area_1780077220795/area_1780077220795.mp4",
+    "geotiffZipUrl": "/exports/area_1780077220795/area_1780077220795_geotiff_csv.zip",
+    "error": null
+  },
+  "finished_at": "20260529_125348"
+}

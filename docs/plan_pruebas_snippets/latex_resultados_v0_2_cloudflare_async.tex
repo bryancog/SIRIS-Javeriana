@@ -1,0 +1,40 @@
+% Fragmento sugerido para incorporar resultados de la prueba v0.2
+% Actualizar el nombre del archivo de evidencia JSON/log según la ejecución real.
+
+\subsection{Resultados de smoke test Cloudflare y exportación asíncrona v0.2}
+
+La segunda ejecución automatizada se enfocó en validar el despliegue mediante Cloudflare
+Tunnel y el nuevo flujo de exportación asíncrona. La prueba se ejecutó contra la URL pública
+del túnel, autenticó un usuario de prueba, consultó el área de estudio, inició una exportación
+por polígono y verificó el avance mediante el endpoint \texttt{/api/area/geotiff-status}.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|p{2.7cm}|p{7.7cm}|p{2.5cm}|}
+\hline
+\textbf{ID} & \textbf{Validación} & \textbf{Estado} \\
+\hline
+SMOKE-01 & Carga de la aplicación desde la URL pública de Cloudflare. & Pendiente \\
+\hline
+SMOKE-02 & Registro de usuario de prueba desde la URL pública. & Pendiente \\
+\hline
+SMOKE-03 & Inicio de sesión y cookie de sesión válida. & Pendiente \\
+\hline
+SMOKE-04 & Consulta autenticada de sesión. & Pendiente \\
+\hline
+SMOKE-05 & Consulta del área de estudio como GeoJSON. & Pendiente \\
+\hline
+SMOKE-06 & Inicio de exportación asíncrona con respuesta HTTP 202. & Pendiente \\
+\hline
+SMOKE-07 & Consulta periódica del estado de exportación. & Pendiente \\
+\hline
+SMOKE-08 & Finalización con estado \texttt{done}. & Pendiente \\
+\hline
+SMOKE-09 & Verificación de video, ZIP, GeoTIFF y CSV generados. & Pendiente \\
+\hline
+\end{tabular}
+\caption{Resultados de smoke test Cloudflare y exportación asíncrona v0.2}
+\end{table}
+
+La evidencia se almacena en \texttt{tests\_evidence/cloudflare/}, incluyendo el log de consola
+y el reporte JSON generado por el script de validación.
