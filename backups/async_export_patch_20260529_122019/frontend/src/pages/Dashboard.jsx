@@ -127,22 +127,14 @@ export default function Dashboard() {
           "leaflet-bar leaflet-control siris-custom-draw-toolbar"
         );
 
-        const drawLink = L.DomUtil.create(
-          "a",
-          "siris-draw-polygon-button",
-          container
-        );
+        const drawLink = L.DomUtil.create("a", "siris-draw-polygon-button", container);
         drawLink.href = "#";
         drawLink.title = "Dibujar polígono";
         drawLink.setAttribute("aria-label", "Dibujar polígono");
         drawLink.innerHTML = "⬟";
         drawButtonRef.current = drawLink;
 
-        const clearLink = L.DomUtil.create(
-          "a",
-          "siris-draw-clear-button",
-          container
-        );
+        const clearLink = L.DomUtil.create("a", "siris-draw-clear-button", container);
         clearLink.href = "#";
         clearLink.title = "Eliminar selección";
         clearLink.setAttribute("aria-label", "Eliminar selección");
@@ -190,7 +182,6 @@ export default function Dashboard() {
 
   function startCustomPolygonDrawing() {
     const map = mapInstanceRef.current;
-
     if (!map) return;
 
     clearDraftDrawing();
@@ -267,7 +258,6 @@ export default function Dashboard() {
     }
 
     const polygonAreaM2 = calculatePolygonAreaFromLatLngs(drawing.points);
-
     setAreaStatus(
       `Dibujo activo: ${drawing.points.length} puntos | Área aproximada: ${formatAreaKm2(
         polygonAreaM2
@@ -370,7 +360,7 @@ export default function Dashboard() {
 
   function startExportProgressPolling() {
     stopExportProgressPolling();
-    setExportProgress("Exportación iniciada. Consultando progreso...", "running");
+    setExportProgress("Generando video...", "running");
 
     pollingRef.current = window.setInterval(async () => {
       try {
@@ -383,31 +373,12 @@ export default function Dashboard() {
         if (status.stage === "done") {
           setExportProgress(status.message, "done");
           stopExportProgressPolling();
-
-          setIsHintError(false);
-          setResultsHint("Exportación generada correctamente.");
-          setResultsCount("1 video");
-
-          setResults([
-            {
-              title: "Área seleccionada",
-              description: "Video, GeoTIFF y CSV generados para el área solicitada.",
-              videoUrl: status.videoUrl,
-              geotiffZipUrl: status.geotiffZipUrl,
-            },
-          ]);
-
           return;
         }
 
         if (status.stage === "error" || status.stage === "cancelled") {
-          const errorMessage = status.error
-            ? `${status.message} ${status.error}`
-            : status.message;
-
-          setExportProgress(errorMessage, "error");
+          setExportProgress(status.message, "error");
           stopExportProgressPolling();
-          clearResults(errorMessage);
           return;
         }
 
@@ -512,16 +483,22 @@ export default function Dashboard() {
         }),
       });
 
-      setExportProgress(
-        payload.message || "Exportación iniciada. Procesando en segundo plano...",
-        "running"
-      );
-      setResultsHint(
-        `Exportación ${payload.outName || ""} iniciada. El sistema actualizará el estado automáticamente.`
-      );
+      stopExportProgressPolling();
+      setExportProgress("Exportación finalizada.", "done");
+      setResultsHint("Exportación generada correctamente.");
+      setResultsCount("1 video");
+
+      setResults([
+        {
+          title: "Área seleccionada",
+          description: "Video, GeoTIFF y CSV generados para el área solicitada.",
+          videoUrl: payload.videoUrl,
+          geotiffZipUrl: payload.geotiffZipUrl,
+        },
+      ]);
     } catch (error) {
       stopExportProgressPolling();
-      setExportProgress("Error iniciando exportación.", "error");
+      setExportProgress("Error generando exportación.", "error");
       clearResults(error.message);
     }
   }
@@ -625,7 +602,11 @@ export default function Dashboard() {
                   <video
                     src={exportUrl(item.videoUrl)}
                     controls
-                    style={{ width: "100%", marginTop: 10, borderRadius: 12 }}
+                    style={{
+                      width: "100%",
+                      marginTop: "10px",
+                      borderRadius: "12px",
+                    }}
                   />
                 )}
 

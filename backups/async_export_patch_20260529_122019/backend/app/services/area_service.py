@@ -1,4 +1,4 @@
-from pathlib import Path
+﻿from pathlib import Path
 import json
 import os
 import shutil
@@ -14,11 +14,8 @@ active_area_out_name: Optional[str] = None
 area_export_status = {
     "running": False,
     "stage": "idle",
-    "message": "Sin exportación activa.",
-    "outName": None,
-    "videoUrl": None,
-    "geotiffZipUrl": None,
-    "error": None,
+    "message": "Listo.",
+    "outName": None
 }
 
 
@@ -27,18 +24,12 @@ def set_area_export_status(
     running: bool,
     stage: str,
     message: str,
-    out_name: Optional[str] = None,
-    video_url: Optional[str] = None,
-    geotiff_zip_url: Optional[str] = None,
-    error: Optional[str] = None,
+    out_name: Optional[str] = None
 ) -> None:
     area_export_status["running"] = running
     area_export_status["stage"] = stage
     area_export_status["message"] = message
     area_export_status["outName"] = out_name
-    area_export_status["videoUrl"] = video_url
-    area_export_status["geotiffZipUrl"] = geotiff_zip_url
-    area_export_status["error"] = error
 
 
 def _date_to_yyyymmdd(value: Optional[str]) -> Optional[str]:
@@ -62,7 +53,7 @@ def _run_process(args: List[str], cwd: Path, process_type: str) -> None:
         text=True,
         encoding="utf-8",
         errors="replace",
-        bufsize=1,
+        bufsize=1
     )
 
     if process_type == "area":
@@ -72,7 +63,6 @@ def _run_process(args: List[str], cwd: Path, process_type: str) -> None:
         active_geotiff_process = child
 
     output_lines = []
-    return_code = None
 
     try:
         if child.stdout:
@@ -81,6 +71,7 @@ def _run_process(args: List[str], cwd: Path, process_type: str) -> None:
                 print(line, end="", flush=True)
 
         return_code = child.wait()
+
     finally:
         if process_type == "area" and active_area_process is child:
             active_area_process = None
@@ -89,8 +80,8 @@ def _run_process(args: List[str], cwd: Path, process_type: str) -> None:
             active_geotiff_process = None
 
     if return_code != 0:
-        if return_code is not None and return_code < 0:
-            raise RuntimeError("Exportación cancelada.")
+        if return_code < 0:
+            raise RuntimeError("Exportacion cancelada.")
 
         last_output = "\n".join(output_lines[-80:])
         raise RuntimeError(last_output or f"Proceso terminó con código {return_code}")
@@ -108,14 +99,14 @@ def run_area_export(
     out_name: str,
     data_root: Path,
     exports_root: Path,
-    web_exports_root: Path,
+    web_exports_root: Path
 ) -> None:
     global active_area_out_name
 
     script_path = data_root.parent / "scripts" / "generar_area_desde_tiles.py"
 
     if not script_path.exists():
-        raise FileNotFoundError(f"No se encontró el script: {script_path}")
+        raise FileNotFoundError(f"No se encontro el script: {script_path}")
 
     export_path = exports_root / out_name
     export_path.mkdir(parents=True, exist_ok=True)
@@ -126,12 +117,9 @@ def run_area_export(
         sys.executable,
         "-u",
         str(script_path),
-        "--web-root",
-        str(web_exports_root),
-        "--out-name",
-        out_name,
-        "--fps",
-        "8",
+        "--web-root", str(web_exports_root),
+        "--out-name", out_name,
+        "--fps", "8"
     ]
 
     date_from_clean = _date_to_yyyymmdd(date_from)
@@ -147,30 +135,20 @@ def run_area_export(
         polygon_path = export_path / "polygon.json"
         polygon_path.write_text(json.dumps(polygon), encoding="utf-8")
 
-        args.extend(
-            [
-                "--polygon-file",
-                str(polygon_path),
-                "--grid-georef",
-                str(data_root / "grid_georef.json"),
-            ]
-        )
+        args.extend([
+            "--polygon-file", str(polygon_path),
+            "--grid-georef", str(data_root / "grid_georef.json")
+        ])
     else:
         if row0 is None or col0 is None or height is None or width is None:
             raise ValueError("Para exportar por caja se requieren row0, col0, height y width.")
 
-        args.extend(
-            [
-                "--row0",
-                str(round(row0)),
-                "--col0",
-                str(round(col0)),
-                "--height",
-                str(round(height)),
-                "--width",
-                str(round(width)),
-            ]
-        )
+        args.extend([
+            "--row0", str(round(row0)),
+            "--col0", str(round(col0)),
+            "--height", str(round(height)),
+            "--width", str(round(width))
+        ])
 
     try:
         _run_process(args, cwd=data_root, process_type="area")
@@ -189,17 +167,17 @@ def run_geotiff_area_export(
     exports_root: Path,
     npy_roots: List[Path],
     mask_root: Path,
-    workers: str,
+    workers: str
 ) -> None:
     global active_area_out_name
 
     if not polygon:
-        raise ValueError("La exportación GeoTIFF requiere un polígono.")
+        raise ValueError("La exportacion GeoTIFF requiere un poligono.")
 
     script_path = data_root.parent / "scripts" / "generar_area_geotiff_csv_desde_npy.py"
 
     if not script_path.exists():
-        raise FileNotFoundError(f"No se encontró el script: {script_path}")
+        raise FileNotFoundError(f"No se encontro el script: {script_path}")
 
     export_path = exports_root / out_name
     export_path.mkdir(parents=True, exist_ok=True)
@@ -215,18 +193,12 @@ def run_geotiff_area_export(
         str(script_path),
         "--npy-roots",
         *[str(root) for root in npy_roots],
-        "--mask-root",
-        str(mask_root),
-        "--polygon-file",
-        str(polygon_path),
-        "--grid-georef",
-        str(data_root / "grid_georef.json"),
-        "--out-root",
-        str(exports_root),
-        "--out-name",
-        out_name,
-        "--workers",
-        str(workers or os.environ.get("SIRIS_GEOTIFF_WORKERS", "2")),
+        "--mask-root", str(mask_root),
+        "--polygon-file", str(polygon_path),
+        "--grid-georef", str(data_root / "grid_georef.json"),
+        "--out-root", str(exports_root),
+        "--out-name", out_name,
+        "--workers", str(workers or os.environ.get("SIRIS_GEOTIFF_WORKERS", "2"))
     ]
 
     date_from_clean = _date_to_yyyymmdd(date_from)
@@ -265,14 +237,14 @@ def cancel_active_area_export(exports_root: Path) -> None:
             shutil.rmtree(export_path, ignore_errors=True)
 
         active_area_out_name = None
-
+        
     set_area_export_status(
         running=False,
         stage="cancelled",
         message="Exportación cancelada.",
-        out_name=None,
+        out_name=None
     )
 
 
 def get_area_export_status():
-    return dict(area_export_status)
+    return area_export_status

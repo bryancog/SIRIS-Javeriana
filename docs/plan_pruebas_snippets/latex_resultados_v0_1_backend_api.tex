@@ -1,0 +1,48 @@
+% Fragmento para pegar en la sección de Resultados y análisis del Plan de Pruebas.
+% Actualizar fecha, hora, equipo y número final de pruebas según la ejecución real.
+
+\subsection{Resultados de pruebas Backend/API v0.1}
+
+La primera versión de pruebas automatizadas se enfocó en los servicios de autenticación,
+consulta del área de estudio y controles básicos de seguridad de la API. La ejecución se
+realizó en ambiente local, sobre la rama \texttt{main}, utilizando una base SQLite temporal
+para evitar modificaciones sobre la base de datos funcional del prototipo.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|p{3cm}|p{7cm}|p{3cm}|}
+\hline
+\textbf{Identificador} & \textbf{Descripción} & \textbf{Estado} \\
+\hline
+API-01 & Registro exitoso de usuario. & Pendiente de ejecución \\
+\hline
+API-02 & Rechazo de usuario duplicado. & Pendiente de ejecución \\
+\hline
+API-03 & Rechazo de campos inválidos en registro. & Pendiente de ejecución \\
+\hline
+API-04 & Inicio de sesión exitoso y sesión autenticada. & Pendiente de ejecución \\
+\hline
+API-05 & Rechazo de contraseña incorrecta. & Pendiente de ejecución \\
+\hline
+API-06 & Consulta de sesión sin autenticación. & Pendiente de ejecución \\
+\hline
+API-07 & Cierre de sesión. & Pendiente de ejecución \\
+\hline
+API-08 & Consulta del área de estudio como GeoJSON. & Pendiente de ejecución \\
+\hline
+SEC-01 & Rechazo de exportación sin sesión. & Pendiente de ejecución \\
+\hline
+SEC-02 & Rechazo de consulta de estado sin sesión. & Pendiente de ejecución \\
+\hline
+SEC-03 & Rechazo de cancelación de exportación sin sesión. & Pendiente de ejecución \\
+\hline
+SEC-04 & Manejo controlado de archivo inexistente en exportaciones. & Pendiente de ejecución \\
+\hline
+SEC-05 & Validación de acceso indebido o ruta inválida en exportaciones. & Pendiente de ejecución \\
+\hline
+\end{tabular}
+\caption{Resultados de pruebas Backend/API v0.1}
+\end{table}
+
+Como evidencia de ejecución se generó un archivo de log en
+\texttt{tests\_evidence/backend\_api/}, el cual registra la salida completa de \texttt{pytest}.
