@@ -17,7 +17,8 @@ The project combines cloud detection, temporal imputation, spatial super-resolut
 - CSV export with imputed pixel information.
 - ZIP download containing GeoTIFF and CSV outputs.
 - FastAPI backend with automatic API documentation.
-- File-based processing architecture without a traditional database.
+- SQLite-based user authentication and registration.
+- File-based geospatial processing architecture for large satellite outputs.
 
 ---
 
@@ -31,6 +32,7 @@ SIRIS/
 │  ├─ app/
 │  │  ├─ main.py
 │  │  ├─ config.py
+│  │  ├─ db.py
 │  │  ├─ schemas.py
 │  │  ├─ routes/
 │  │  │  ├─ auth.py
@@ -53,7 +55,10 @@ SIRIS/
 │
 ├─ frontend/
 │  ├─ index.html
+│  ├─ register.html
 │  ├─ dashboard.html
+│  ├─ login.js
+│  ├─ register.js
 │  ├─ dashboard.js
 │  └─ styles.css
 │
@@ -69,6 +74,7 @@ SIRIS/
 - Python
 - FastAPI
 - Uvicorn
+- SQLite
 - NumPy
 - Rasterio
 - PyProj
@@ -97,15 +103,17 @@ SIRIS/
 
 The web application follows this workflow:
 
-1. The user logs in.
-2. The user selects a date range.
-3. The user draws a polygon on the map.
-4. The frontend sends the polygon and date range to the FastAPI backend.
-5. The backend generates a video from preprocessed image tiles.
-6. The backend generates GeoTIFF outputs from super-resolved NumPy arrays.
-7. The backend generates a CSV with imputed pixel information.
-8. The backend compresses GeoTIFF and CSV outputs into a ZIP file.
-9. The frontend displays the video and provides a download link for the ZIP file.
+1. The user creates an account or logs in with existing credentials.
+2. The backend validates the credentials using a SQLite database.
+3. The authenticated user accesses the satellite dashboard.
+4. The user selects a date range.
+5. The user draws a polygon on the map.
+6. The frontend sends the polygon and date range to the FastAPI backend.
+7. The backend generates a video from preprocessed image tiles.
+8. The backend generates GeoTIFF outputs from super-resolved NumPy arrays.
+9. The backend generates a CSV with imputed pixel information.
+10. The backend compresses GeoTIFF and CSV outputs into a ZIP file.
+11. The frontend displays the video and provides a download link for the ZIP file.
 
 ---
 
@@ -224,12 +232,38 @@ http://127.0.0.1:3000
 
 ---
 
-## Test User
+## Authentication and User Registration
+
+The system includes user registration and login using a local SQLite database.
+
+Users can create an account through:
+
+```txt
+http://127.0.0.1:3000/register.html
+```
+
+Registered users can log in through:
+
+```txt
+http://127.0.0.1:3000/index.html
+```
+
+Passwords are not stored in plain text. The backend stores a salted password hash and validates credentials through the FastAPI authentication route.
+
+A demo user may be automatically created during development:
 
 ```txt
 Username: demo
 Password: demo123
 ```
+
+The SQLite database is created locally at:
+
+```txt
+backend/data/siris.db
+```
+
+This database is local and should not be committed to GitHub.
 
 ---
 
@@ -258,9 +292,11 @@ These pages allow inspection and testing of the backend endpoints.
 ```txt
 GET  /
 GET  /index.html
+GET  /register.html
 GET  /dashboard.html
 
 GET  /api/session
+POST /api/register
 POST /api/login
 POST /api/logout
 
@@ -272,6 +308,83 @@ GET  /api/area/geotiff-status
 
 GET  /exports/{file_path}
 ```
+
+---
+
+## Register Endpoint
+
+The registration endpoint is:
+
+```txt
+POST /api/register
+```
+
+Expected JSON body:
+
+```json
+{
+  "name": "User Name",
+  "username": "username",
+  "password": "password123"
+}
+```
+
+Example response:
+
+```json
+{
+  "message": "Usuario registrado correctamente.",
+  "user": {
+    "username": "username",
+    "name": "User Name"
+  }
+}
+```
+
+Validation rules:
+
+- Username must have at least 3 characters.
+- Name must have at least 3 characters.
+- Password must have at least 6 characters.
+- Username must be unique.
+
+---
+
+## Login Endpoint
+
+The login endpoint is:
+
+```txt
+POST /api/login
+```
+
+Expected JSON body:
+
+```json
+{
+  "username": "username",
+  "password": "password123"
+}
+```
+
+Example response:
+
+```json
+{
+  "message": "Login correcto.",
+  "user": {
+    "username": "username",
+    "name": "User Name"
+  }
+}
+```
+
+After successful login, the backend creates an HTTP-only session cookie named:
+
+```txt
+siris_session
+```
+
 
 ---
 
@@ -388,6 +501,9 @@ The following files and folders should remain ignored:
 ```gitignore
 backend/data/web_exports/
 backend/data/area_exports/
+backend/data/*.db
+backend/data/*.sqlite
+backend/data/*.sqlite3
 *.npy
 *.tif
 *.tiff
@@ -405,13 +521,17 @@ venv/
 
 ## Development Notes
 
-This version migrated the backend from a JavaScript-based server to FastAPI while preserving the frontend and the existing Python processing scripts.
+This version migrated the backend from a JavaScript-based server to FastAPI while preserving the existing Python geospatial processing scripts. It also adds SQLite-based authentication, user registration, password hashing and session management through HTTP-only cookies.
 
 The migration improves:
 
 - Backend structure.
 - API documentation.
 - Python-native integration with geospatial scripts.
+- SQLite-based user persistence.
+- User registration and login.
+- Password hashing with individual salt.
+- HTTP-only cookie-based session handling.
 - Maintainability for research and thesis documentation.
 - Future deployment options.
 
@@ -429,4 +549,4 @@ migracionFastAPI
 
 ## Project Purpose
 
-SIRIS is designed as an academic and research tool to support analysis of Sentinel-2 satellite imagery in cloudy regions. The system helps generate visual and geospatial outputs from restored and super-resolved satellite products, supporting environmental monitoring and remote sensing workflows.
+SIRIS is designed as an academic and research tool to support analysis of Sentinel-2 satellite imagery in cloudy regions. The system helps generate visual and geospatial outputs from processed Sentinel-2 products, supporting environmental monitoring and remote sensing workflows.
