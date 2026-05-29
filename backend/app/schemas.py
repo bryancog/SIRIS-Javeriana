@@ -7,6 +7,10 @@ class LoginRequest(BaseModel):
     username: str
     password: str
 
+class RegisterRequest(BaseModel):
+    username: str
+    password: str
+    name: str
 
 class AreaExportRequest(BaseModel):
     row0: Optional[float] = None

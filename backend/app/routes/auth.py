@@ -6,8 +6,8 @@ from fastapi import APIRouter, Cookie, Response
 from fastapi.responses import JSONResponse
 
 from app.config import SESSION_COOKIE
-from app.schemas import LoginRequest
-from app.db import get_user_by_username, verify_password
+from app.schemas import LoginRequest, RegisterRequest
+from app.db import get_user_by_username, verify_password, create_user
 
 
 router = APIRouter()
@@ -34,6 +34,52 @@ def api_session(siris_session: Optional[str] = Cookie(default=None)):
         } if session else None
     }
 
+@router.post("/api/register")
+def api_register(payload: RegisterRequest):
+    username = payload.username.strip()
+    name = payload.name.strip()
+    password = payload.password
+
+    if len(username) < 3:
+        return JSONResponse(
+            status_code=400,
+            content={"message": "El usuario debe tener al menos 3 caracteres."}
+        )
+
+    if len(name) < 3:
+        return JSONResponse(
+            status_code=400,
+            content={"message": "El nombre debe tener al menos 3 caracteres."}
+        )
+
+    if len(password) < 6:
+        return JSONResponse(
+            status_code=400,
+            content={"message": "La contraseña debe tener al menos 6 caracteres."}
+        )
+
+    existing_user = get_user_by_username(username)
+
+    if existing_user:
+        return JSONResponse(
+            status_code=409,
+            content={"message": "El usuario ya existe."}
+        )
+
+    create_user(
+        username=username,
+        password=password,
+        name=name,
+        is_active=1
+    )
+
+    return {
+        "message": "Usuario registrado correctamente.",
+        "user": {
+            "username": username,
+            "name": name
+        }
+    }
 
 @router.post("/api/login")
 def api_login(payload: LoginRequest, response: Response):
