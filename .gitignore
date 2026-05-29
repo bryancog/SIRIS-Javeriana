@@ -1,12 +1,44 @@
-node_modules/
+# ============================================================
+# SIRIS-Javeriana - Archivos ignorados por Git
+# ============================================================
 
+# ------------------------------------------------------------
+# Entornos, cachés y dependencias
+# ------------------------------------------------------------
+node_modules/
+frontend/node_modules/
+frontend/.vite/
+frontend/dist/
+
+venv/
+.venv/
+backend/venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.cache/
+
+# ------------------------------------------------------------
+# Variables de entorno y configuración local
+# ------------------------------------------------------------
+.env
+.env.*
+*.local
+
+# ------------------------------------------------------------
+# Base de datos local
+# ------------------------------------------------------------
+backend/data/siris.db
+backend/data/*.db
+backend/data/*.sqlite
+backend/data/*.sqlite3
+
+# ------------------------------------------------------------
+# Datos geoespaciales pesados y productos generados
+# ------------------------------------------------------------
 backend/data/area_exports/
 backend/data/web_exports/
-
 backend/data/*.gpkg
-
-backend/data/*.geojson
-!backend/data/study_area.geojson
 
 backend/data/**/*.zip
 backend/data/**/*.mp4
@@ -16,18 +48,48 @@ backend/data/**/*.png
 backend/data/**/*.npy
 backend/data/**/*.tif
 backend/data/**/*.tiff
-backend/data/*.db
-backend/data/*.sqlite
-backend/data/*.sqlite3
-tests_evidence/backend_api/*.png
-tests_evidence/uat/*.png
 
-__pycache__/
-*.pyc
-.venv/
-venv/
-.env# React/Vite frontend
-frontend/node_modules/
-frontend/dist/
-frontend/.vite/
+# Mantener únicamente el área de estudio base
+backend/data/*.geojson
+!backend/data/study_area.geojson
 
+# ------------------------------------------------------------
+# Evidencias de pruebas locales
+# ------------------------------------------------------------
+tests_evidence/
+backend/tests_evidence/
+frontend/test-results/
+frontend/playwright-report/
+frontend/blob-report/
+
+# ------------------------------------------------------------
+# Backups locales de parches
+# ------------------------------------------------------------
+backups/
+
+# ------------------------------------------------------------
+# Archivos temporales del sistema/editor
+# ------------------------------------------------------------
+.DS_Store
+Thumbs.db
+*.log
+*.tmp
+*.bak
+*.swp
+
+# ------------------------------------------------------------
+# Overleaf / LaTeX temporales
+# ------------------------------------------------------------
+*.aux
+*.bbl
+*.bcf
+*.blg
+*.fdb_latexmk
+*.fls
+*.log
+*.out
+*.run.xml
+*.synctex.gz
+*.toc
+*.lof
+*.lot
