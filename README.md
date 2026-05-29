@@ -2,14 +2,14 @@
 
 SIRIS is a research-oriented geospatial platform for Sentinel-2 satellite image restoration, temporal gap filling, super-resolution and visualization over the Colombian Pacific region.
 
-The project combines cloud detection, temporal imputation, spatial super-resolution and a web dashboard that allows users to select an area of interest, define a date range and generate exportable satellite products.
+The project combines cloud detection, temporal imputation, spatial super-resolution, user authentication and a web dashboard that allows users to select an area of interest, define a date range and generate exportable satellite products.
 
 ---
 
 ## Main Features
 
 - Sentinel-2 time series visualization.
-- Interactive web map using Leaflet and Leaflet Draw.
+- Interactive web map using Leaflet.
 - Polygon-based area selection.
 - Date range filtering.
 - Video generation for the selected area.
@@ -18,13 +18,16 @@ The project combines cloud detection, temporal imputation, spatial super-resolut
 - ZIP download containing GeoTIFF and CSV outputs.
 - FastAPI backend with automatic API documentation.
 - SQLite-based user authentication and registration.
+- React + Vite frontend.
 - File-based geospatial processing architecture for large satellite outputs.
+- Local development with Vite dev server and FastAPI API proxy.
+- Production/local compiled mode where FastAPI serves the React build from `frontend/dist`.
 
 ---
 
 ## Current Architecture
 
-The project is organized into two main components:
+The project is organized into two main components: a FastAPI backend and a React frontend built with Vite.
 
 ```txt
 SIRIS/
@@ -51,17 +54,27 @@ SIRIS/
 │  │  ├─ web_exports/
 │  │  └─ area_exports/
 │  │
+│  ├─ venv/
 │  └─ requirements.txt
 │
 ├─ frontend/
 │  ├─ index.html
-│  ├─ register.html
-│  ├─ dashboard.html
-│  ├─ login.js
-│  ├─ register.js
-│  ├─ dashboard.js
-│  └─ styles.css
+│  ├─ package.json
+│  ├─ package-lock.json
+│  ├─ vite.config.js
+│  ├─ public/
+│  └─ src/
+│     ├─ main.jsx
+│     ├─ api.js
+│     ├─ styles.css
+│     ├─ components/
+│     │  └─ AuthShell.jsx
+│     └─ pages/
+│        ├─ Login.jsx
+│        ├─ Register.jsx
+│        └─ Dashboard.jsx
 │
+├─ .gitignore
 └─ README.md
 ```
 
@@ -71,7 +84,7 @@ SIRIS/
 
 ### Backend
 
-- Python
+- Python 3.11
 - FastAPI
 - Uvicorn
 - SQLite
@@ -82,9 +95,11 @@ SIRIS/
 
 ### Frontend
 
-- HTML
+- React
+- Vite
+- JavaScript / JSX
 - CSS
-- JavaScript
+- React Router DOM
 - Leaflet
 - Leaflet Draw
 
@@ -99,15 +114,31 @@ SIRIS/
 
 ---
 
+## React and Vite Clarification
+
+This project uses both React and Vite.
+
+React is the frontend library used to build the interface components and application pages, such as login, registration and dashboard.
+
+Vite is the frontend development server and build tool. It runs the React app during development and generates the production build inside:
+
+```txt
+frontend/dist/
+```
+
+In development, Vite runs the frontend on port `5173` and proxies API requests to the FastAPI backend on port `3000`.
+
+---
+
 ## Processing Workflow
 
 The web application follows this workflow:
 
 1. The user creates an account or logs in with existing credentials.
-2. The backend validates the credentials using a SQLite database.
-3. The authenticated user accesses the satellite dashboard.
+2. The backend validates credentials using a SQLite database.
+3. The authenticated user accesses the React dashboard.
 4. The user selects a date range.
-5. The user draws a polygon on the map.
+5. The user draws a polygon on the Leaflet map.
 6. The frontend sends the polygon and date range to the FastAPI backend.
 7. The backend generates a video from preprocessed image tiles.
 8. The backend generates GeoTIFF outputs from super-resolved NumPy arrays.
@@ -126,13 +157,23 @@ git clone https://github.com/bryancog/SIRIS-Javeriana.git
 cd SIRIS-Javeriana
 ```
 
-### 2. Enter the backend folder
+### 2. Select the React + Vite migration branch
+
+```bash
+git checkout migracion-react-vite
+```
+
+---
+
+## Backend Setup
+
+### 1. Enter the backend folder
 
 ```bash
 cd backend
 ```
 
-### 3. Create a Python virtual environment
+### 2. Create a Python virtual environment
 
 Python 3.11 is recommended.
 
@@ -140,24 +181,70 @@ Python 3.11 is recommended.
 py -3.11 -m venv venv
 ```
 
-### 4. Activate the virtual environment
+### 3. Activate the virtual environment in PowerShell
 
 ```powershell
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
-.\venv\Scripts\activate
+.\venv\Scripts\Activate.ps1
 ```
 
-### 5. Install dependencies
+If activation is not required, the backend can also be run directly with:
+
+```powershell
+.\venv\Scripts\python.exe -m uvicorn app.main:app --host 127.0.0.1 --port 3000 --reload
+```
+
+### 4. Install dependencies
 
 ```bash
 python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
 ```
 
-### 6. Verify installation
+### 5. Verify installation
 
 ```bash
 python -c "import fastapi, uvicorn, numpy, rasterio, pyproj, PIL; print('OK')"
+```
+
+---
+
+## Frontend Setup
+
+The frontend is located in:
+
+```txt
+frontend/
+```
+
+### 1. Enter the frontend folder
+
+```powershell
+cd D:\SIRIS\frontend
+```
+
+### 2. Install dependencies
+
+```powershell
+npm.cmd install
+```
+
+### 3. Run the frontend development server
+
+```powershell
+npm.cmd run dev
+```
+
+The frontend will usually be available at:
+
+```txt
+http://localhost:5173/
+```
+
+If port `5173` is already in use, Vite may start on another port, such as:
+
+```txt
+http://localhost:5174/
 ```
 
 ---
@@ -216,19 +303,75 @@ $env:SIRIS_GEOTIFF_WORKERS="2"
 
 ---
 
-## Run the Application
+## Run the Application in Development Mode
 
-From the backend folder:
+Development mode uses two terminals.
 
-```bash
-uvicorn app.main:app --host 127.0.0.1 --port 3000 --reload
+### Terminal 1: FastAPI backend
+
+```powershell
+cd D:\SIRIS\backend
+.\venv\Scripts\python.exe -m uvicorn app.main:app --host 127.0.0.1 --port 3000 --reload
 ```
 
-Open the application in the browser:
+Backend URL:
 
 ```txt
 http://127.0.0.1:3000
 ```
+
+API documentation:
+
+```txt
+http://127.0.0.1:3000/docs
+```
+
+### Terminal 2: React + Vite frontend
+
+```powershell
+cd D:\SIRIS\frontend
+npm.cmd run dev
+```
+
+Frontend URL:
+
+```txt
+http://localhost:5173/
+```
+
+In development, access the system from the Vite URL, not directly from the backend URL.
+
+---
+
+## Run the Application in Compiled Mode
+
+For local production-style testing, first build the React frontend:
+
+```powershell
+cd D:\SIRIS\frontend
+npm.cmd run build
+```
+
+This generates:
+
+```txt
+frontend/dist/
+```
+
+Then run the FastAPI backend:
+
+```powershell
+cd D:\SIRIS\backend
+.\venv\Scripts\python.exe -m uvicorn app.main:app --host 127.0.0.1 --port 3000 --reload
+```
+
+Open the application from:
+
+```txt
+http://127.0.0.1:3000/
+```
+
+In this mode, FastAPI serves the compiled React application from `frontend/dist`.
 
 ---
 
@@ -236,16 +379,28 @@ http://127.0.0.1:3000
 
 The system includes user registration and login using a local SQLite database.
 
-Users can create an account through:
+React frontend routes:
 
 ```txt
-http://127.0.0.1:3000/register.html
+/login
+/register
+/dashboard
 ```
 
-Registered users can log in through:
+During development, these routes are accessed through the Vite server:
 
 ```txt
-http://127.0.0.1:3000/index.html
+http://localhost:5173/login
+http://localhost:5173/register
+http://localhost:5173/dashboard
+```
+
+In compiled mode, they are accessed through FastAPI:
+
+```txt
+http://127.0.0.1:3000/login
+http://127.0.0.1:3000/register
+http://127.0.0.1:3000/dashboard
 ```
 
 Passwords are not stored in plain text. The backend stores a salted password hash and validates credentials through the FastAPI authentication route.
@@ -291,9 +446,9 @@ These pages allow inspection and testing of the backend endpoints.
 
 ```txt
 GET  /
-GET  /index.html
-GET  /register.html
-GET  /dashboard.html
+GET  /login
+GET  /register
+GET  /dashboard
 
 GET  /api/session
 POST /api/register
@@ -308,6 +463,8 @@ GET  /api/area/geotiff-status
 
 GET  /exports/{file_path}
 ```
+
+The frontend routes are handled by React. The API routes are handled by FastAPI.
 
 ---
 
@@ -385,7 +542,6 @@ After successful login, the backend creates an HTTP-only session cookie named:
 siris_session
 ```
 
-
 ---
 
 ## Export Endpoint
@@ -418,6 +574,8 @@ Expected JSON body:
   "dateTo": "2021-01-01"
 }
 ```
+
+The polygon can contain three or more vertices.
 
 Example response:
 
@@ -514,16 +672,72 @@ backend/data/*.sqlite3
 *.png
 __pycache__/
 venv/
+node_modules/
+frontend/dist/
 .env
+```
+
+---
+
+## Cloudflare Deployment Notes
+
+The recommended deployment path for this version is:
+
+```txt
+React build + FastAPI backend + Cloudflare Tunnel
+```
+
+Recommended flow:
+
+1. Build the frontend:
+
+```powershell
+cd D:\SIRIS\frontend
+npm.cmd run build
+```
+
+2. Run the FastAPI backend:
+
+```powershell
+cd D:\SIRIS\backend
+.\venv\Scripts\python.exe -m uvicorn app.main:app --host 127.0.0.1 --port 3000
+```
+
+3. Expose the backend through Cloudflare Tunnel:
+
+```powershell
+cloudflared tunnel --url http://localhost:3000
+```
+
+For production, configure a named Cloudflare Tunnel and route a hostname such as:
+
+```txt
+siris.yourdomain.com
+```
+
+to:
+
+```txt
+http://localhost:3000
 ```
 
 ---
 
 ## Development Notes
 
-This version migrated the backend from a JavaScript-based server to FastAPI while preserving the existing Python geospatial processing scripts. It also adds SQLite-based authentication, user registration, password hashing and session management through HTTP-only cookies.
+This version migrated the frontend from static HTML/CSS/JavaScript to React with Vite while preserving the FastAPI backend and the existing Python geospatial processing scripts.
 
 The migration improves:
+
+- Component-based frontend structure.
+- React Router navigation.
+- Vite development server with fast reload.
+- Cleaner separation between frontend pages and API calls.
+- Improved maintainability for future UI changes.
+- Compatibility with a compiled frontend served by FastAPI.
+- Easier path for Cloudflare Tunnel deployment.
+
+The previous FastAPI migration also added:
 
 - Backend structure.
 - API documentation.
@@ -539,7 +753,13 @@ The migration improves:
 
 ## Current Branch
 
-The FastAPI migration is being developed in:
+The React + Vite frontend migration is being developed in:
+
+```txt
+migracion-react-vite
+```
+
+The previous FastAPI-only migration branch was:
 
 ```txt
 migracionFastAPI
