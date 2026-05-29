@@ -19,6 +19,7 @@ backend/data/**/*.tiff
 backend/data/*.db
 backend/data/*.sqlite
 backend/data/*.sqlite3
+tests_evidence/backend_api/*.png
 
 __pycache__/
 *.pyc
